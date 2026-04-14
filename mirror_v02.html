@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mirror — Ton styliste IA</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0a0a0a;
+      color: #f0f0f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    header h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      letter-spacing: -2px;
+      background: linear-gradient(135deg, #fff 0%, #aaa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    header p {
+      color: #888;
+      margin-top: 0.5rem;
+      font-size: 1rem;
+    }
+
+    .card {
+      background: #141414;
+      border: 1px solid #222;
+      border-radius: 20px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 560px;
+    }
+
+    .field {
+      margin-bottom: 1.25rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #888;
+      margin-bottom: 0.5rem;
+    }
+
+    select, input[type="text"] {
+      width: 100%;
+      background: #1e1e1e;
+      border: 1px solid #2e2e2e;
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      color: #f0f0f0;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+      appearance: none;
+    }
+
+    select:focus, input[type="text"]:focus {
+      border-color: #555;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 0.5rem;
+      padding: 0.9rem;
+      background: #f0f0f0;
+      color: #0a0a0a;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    button:hover { background: #ddd; }
+    button:active { transform: scale(0.98); }
+    button:disabled { background: #333; color: #666; cursor: not-allowed; }
+
+    #result {
+      display: none;
+      margin-top: 2rem;
+      background: #141414;
+      border: 1px solid #222;
+      border-radius: 20px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 560px;
+    }
+
+    #result h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #888;
+      margin-bottom: 1rem;
+    }
+
+    #outfit-text {
+      line-height: 1.75;
+      color: #ddd;
+      white-space: pre-wrap;
+      font-size: 0.95rem;
+    }
+
+    #outfit-text strong {
+      color: #fff;
+    }
+
+    .loader {
+      display: none;
+      text-align: center;
+      color: #555;
+      font-size: 0.9rem;
+      margin-top: 1rem;
+    }
+
+    .loader span {
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Mirror</h1>
+    <p>Ton styliste personnel propulsé par l'IA</p>
+  </header>
+
+  <div class="card">
+    <form id="mirrorForm">
+
+      <div class="field">
+        <label for="style">Style vestimentaire</label>
+        <select id="style" name="style" required>
+          <option value="" disabled selected>Choisir un style…</option>
+          <option value="Casual décontracté">Casual décontracté</option>
+          <option value="Business casual">Business casual</option>
+          <option value="Formel / Élégant">Formel / Élégant</option>
+          <option value="Streetwear">Streetwear</option>
+          <option value="Sportif / Athleisure">Sportif / Athleisure</option>
+          <option value="Bohème / Romantique">Bohème / Romantique</option>
+          <option value="Minimaliste">Minimaliste</option>
+          <option value="Rock / Edgy">Rock / Edgy</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="colors">Couleurs préférées</label>
+        <input
+          type="text"
+          id="colors"
+          name="colors"
+          placeholder="ex. noir, beige, bleu marine…"
+        />
+      </div>
+
+      <div class="field">
+        <label for="occasion">Occasion</label>
+        <select id="occasion" name="occasion" required>
+          <option value="" disabled selected>Choisir une occasion…</option>
+          <option value="Travail / Bureau">Travail / Bureau</option>
+          <option value="Soirée entre amis">Soirée entre amis</option>
+          <option value="Rendez-vous romantique">Rendez-vous romantique</option>
+          <option value="Mariage / Cérémonie">Mariage / Cérémonie</option>
+          <option value="Sport / Gym">Sport / Gym</option>
+          <option value="Week-end détendu">Week-end détendu</option>
+          <option value="Soirée formelle / Gala">Soirée formelle / Gala</option>
+          <option value="Shopping / Balade en ville">Shopping / Balade en ville</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="saison">Saison</label>
+        <select id="saison" name="saison" required>
+          <option value="" disabled selected>Choisir une saison…</option>
+          <option value="Printemps">Printemps</option>
+          <option value="Été">Été</option>
+          <option value="Automne">Automne</option>
+          <option value="Hiver">Hiver</option>
+        </select>
+      </div>
+
+      <button type="submit" id="submitBtn">Générer ma tenue ✦</button>
+    </form>
+
+    <div class="loader" id="loader">
+      <span>Mirror réfléchit à ta tenue…</span>
+    </div>
+  </div>
+
+  <div id="result">
+    <h2>Ta tenue Mirror</h2>
+    <div id="outfit-text"></div>
+  </div>
+
+  <script>
+    const API_BASE = '';
+
+    document.getElementById('mirrorForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const btn = document.getElementById('submitBtn');
+      const loader = document.getElementById('loader');
+      const result = document.getElementById('result');
+      const outfitText = document.getElementById('outfit-text');
+
+      const payload = {
+        style: document.getElementById('style').value,
+        colors: document.getElementById('colors').value,
+        occasion: document.getElementById('occasion').value,
+        saison: document.getElementById('saison').value,
+      };
+
+      btn.disabled = true;
+      loader.style.display = 'block';
+      result.style.display = 'none';
+
+      try {
+        const response = await fetch(`${API_BASE}/api/generate-outfit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) throw new Error(data.error || 'Erreur serveur');
+
+        // Render markdown-like bold text
+        const formatted = data.outfit
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\n/g, '<br/>');
+
+        outfitText.innerHTML = formatted;
+        result.style.display = 'block';
+        result.scrollIntoView({ behavior: 'smooth' });
+
+      } catch (err) {
+        outfitText.textContent = `Erreur : ${err.message}`;
+        result.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        loader.style.display = 'none';
+      }
+    });
+  </script>
+
+</body>
+</html>
