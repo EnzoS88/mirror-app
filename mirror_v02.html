@@ -3,240 +3,478 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mirror — Ton styliste IA</title>
+  <title>Mirror</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream: #F5F0E8;
+      --cream-dark: #EDE7D9;
+      --cream-border: #DDD5C4;
+      --gold: #B8964E;
+      --gold-light: #D4AA6A;
+      --text: #2C2416;
+      --text-muted: #8A7A68;
+      --chip-bg: #EDE7D9;
+      --chip-active: #2C2416;
+      --chip-active-text: #F5F0E8;
+    }
 
     body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #0a0a0a;
-      color: #f0f0f0;
+      font-family: 'Inter', sans-serif;
+      background: var(--cream);
+      color: var(--text);
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
+      padding: 3rem 1.5rem 4rem;
     }
 
+    /* ── HEADER ── */
     header {
       text-align: center;
-      margin-bottom: 2.5rem;
+      margin-bottom: 3rem;
     }
 
-    header h1 {
-      font-size: 3rem;
-      font-weight: 800;
-      letter-spacing: -2px;
-      background: linear-gradient(135deg, #fff 0%, #aaa 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 3.2rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -1px;
+      line-height: 1;
     }
 
-    header p {
-      color: #888;
-      margin-top: 0.5rem;
-      font-size: 1rem;
+    .logo .ror {
+      font-style: italic;
+      color: var(--gold);
     }
 
-    .card {
-      background: #141414;
-      border: 1px solid #222;
-      border-radius: 20px;
-      padding: 2rem;
-      width: 100%;
-      max-width: 560px;
-    }
-
-    .field {
-      margin-bottom: 1.25rem;
-    }
-
-    label {
-      display: block;
+    .tagline {
+      font-family: 'Inter', sans-serif;
       font-size: 0.8rem;
+      font-weight: 400;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-top: 0.6rem;
+    }
+
+    /* ── CARD ── */
+    .card {
+      max-width: 580px;
+      margin: 0 auto;
+      background: #FBF8F3;
+      border: 1px solid var(--cream-border);
+      border-radius: 24px;
+      padding: 2.2rem 2rem;
+    }
+
+    /* ── SECTION LABELS ── */
+    .section-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.7rem;
       font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.85rem;
+      display: block;
+    }
+
+    .section {
+      margin-bottom: 1.8rem;
+    }
+
+    /* ── CHIPS ── */
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 1rem;
+      border-radius: 100px;
+      border: 1.5px solid var(--cream-border);
+      background: var(--chip-bg);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.18s ease;
+      user-select: none;
+    }
+
+    .chip:hover {
+      border-color: var(--gold-light);
+      color: var(--text);
+    }
+
+    .chip.active {
+      background: var(--chip-active);
+      border-color: var(--chip-active);
+      color: var(--chip-active-text);
+    }
+
+    /* Color dot */
+    .color-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.12);
+      flex-shrink: 0;
+    }
+
+    /* ── SEASON BUTTONS ── */
+    .seasons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+    }
+
+    .season-btn {
+      padding: 0.6rem 0.5rem;
+      border-radius: 12px;
+      border: 1.5px solid var(--cream-border);
+      background: var(--chip-bg);
+      font-family: 'Playfair Display', serif;
+      font-size: 0.88rem;
+      font-weight: 400;
+      font-style: italic;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.18s ease;
+      user-select: none;
+    }
+
+    .season-btn:hover {
+      border-color: var(--gold-light);
+      color: var(--text);
+    }
+
+    .season-btn.active {
+      background: var(--text);
+      border-color: var(--text);
+      color: var(--cream);
+      font-style: italic;
+    }
+
+    /* ── OUTFIT TITLE ── */
+    .outfit-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.7rem;
+      font-style: italic;
+      font-weight: 600;
+      color: var(--gold);
+      line-height: 1.3;
+      margin-bottom: 1.1rem;
+    }
+
+    /* ── GENERATE BUTTON ── */
+    .generate-btn {
+      width: 100%;
+      margin-top: 0.5rem;
+      padding: 1rem;
+      border-radius: 14px;
+      border: none;
+      background: var(--text);
+      color: var(--cream);
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem;
+      font-style: italic;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      letter-spacing: 0.3px;
+    }
+
+    .generate-btn:hover {
+      background: #3D3020;
+    }
+
+    .generate-btn:active {
+      transform: scale(0.99);
+    }
+
+    .generate-btn:disabled {
+      background: var(--cream-border);
+      color: var(--text-muted);
+      cursor: not-allowed;
+    }
+
+    /* ── LOADER ── */
+    .loader {
+      display: none;
+      text-align: center;
+      padding: 1.2rem 0 0;
+    }
+
+    .loader-dots {
+      display: inline-flex;
+      gap: 5px;
+    }
+
+    .loader-dots span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+      animation: bounce 1.2s ease-in-out infinite;
+    }
+
+    .loader-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .loader-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+      40% { transform: translateY(-6px); opacity: 1; }
+    }
+
+    .loader-text {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 0.6rem;
       letter-spacing: 1px;
       text-transform: uppercase;
-      color: #888;
-      margin-bottom: 0.5rem;
     }
 
-    select, input[type="text"] {
-      width: 100%;
-      background: #1e1e1e;
-      border: 1px solid #2e2e2e;
-      border-radius: 10px;
-      padding: 0.75rem 1rem;
-      color: #f0f0f0;
-      font-size: 0.95rem;
-      outline: none;
-      transition: border-color 0.2s;
-      appearance: none;
-    }
-
-    select:focus, input[type="text"]:focus {
-      border-color: #555;
-    }
-
-    button {
-      width: 100%;
-      margin-top: 0.5rem;
-      padding: 0.9rem;
-      background: #f0f0f0;
-      color: #0a0a0a;
-      border: none;
-      border-radius: 12px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.1s;
-    }
-
-    button:hover { background: #ddd; }
-    button:active { transform: scale(0.98); }
-    button:disabled { background: #333; color: #666; cursor: not-allowed; }
-
+    /* ── RESULT ── */
     #result {
       display: none;
-      margin-top: 2rem;
-      background: #141414;
-      border: 1px solid #222;
-      border-radius: 20px;
+      max-width: 580px;
+      margin: 1.8rem auto 0;
+      background: #FBF8F3;
+      border: 1px solid var(--cream-border);
+      border-radius: 24px;
       padding: 2rem;
-      width: 100%;
-      max-width: 560px;
     }
 
-    #result h2 {
-      font-size: 1rem;
-      font-weight: 700;
-      letter-spacing: 1px;
+    .result-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 2px;
       text-transform: uppercase;
-      color: #888;
+      color: var(--gold);
       margin-bottom: 1rem;
     }
 
     #outfit-text {
-      line-height: 1.75;
-      color: #ddd;
-      white-space: pre-wrap;
-      font-size: 0.95rem;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.08rem;
+      line-height: 1.85;
+      color: var(--text);
     }
 
-    #outfit-text strong {
-      color: #fff;
-    }
-
-    .loader {
-      display: none;
-      text-align: center;
-      color: #555;
-      font-size: 0.9rem;
-      margin-top: 1rem;
-    }
-
-    .loader span {
-      animation: pulse 1.2s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 0.3; }
-      50% { opacity: 1; }
+    .divider {
+      border: none;
+      border-top: 1px solid var(--cream-border);
+      margin: 1.8rem 0;
     }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>Mirror</h1>
-    <p>Ton styliste personnel propulsé par l'IA</p>
+    <div class="logo">Mir<span class="ror">ror</span></div>
+    <p class="tagline">Ton styliste personnel</p>
   </header>
 
   <div class="card">
-    <form id="mirrorForm">
 
-      <div class="field">
-        <label for="style">Style vestimentaire</label>
-        <select id="style" name="style" required>
-          <option value="" disabled selected>Choisir un style…</option>
-          <option value="Casual décontracté">Casual décontracté</option>
-          <option value="Business casual">Business casual</option>
-          <option value="Formel / Élégant">Formel / Élégant</option>
-          <option value="Streetwear">Streetwear</option>
-          <option value="Sportif / Athleisure">Sportif / Athleisure</option>
-          <option value="Bohème / Romantique">Bohème / Romantique</option>
-          <option value="Minimaliste">Minimaliste</option>
-          <option value="Rock / Edgy">Rock / Edgy</option>
-        </select>
+    <!-- COULEURS -->
+    <div class="section">
+      <span class="section-label">Couleurs</span>
+      <div class="chips" id="colorChips">
+        <div class="chip" data-value="Noir" data-group="color">
+          <span class="color-dot" style="background:#1a1a1a;"></span> Noir
+        </div>
+        <div class="chip" data-value="Blanc" data-group="color">
+          <span class="color-dot" style="background:#f5f0e8; border-color:#ccc;"></span> Blanc
+        </div>
+        <div class="chip" data-value="Beige" data-group="color">
+          <span class="color-dot" style="background:#D4B896;"></span> Beige
+        </div>
+        <div class="chip" data-value="Camel" data-group="color">
+          <span class="color-dot" style="background:#C19A6B;"></span> Camel
+        </div>
+        <div class="chip" data-value="Bleu marine" data-group="color">
+          <span class="color-dot" style="background:#1B2A4A;"></span> Bleu marine
+        </div>
+        <div class="chip" data-value="Bordeaux" data-group="color">
+          <span class="color-dot" style="background:#722F37;"></span> Bordeaux
+        </div>
+        <div class="chip" data-value="Vert" data-group="color">
+          <span class="color-dot" style="background:#4A7C59;"></span> Vert
+        </div>
+        <div class="chip" data-value="Rose" data-group="color">
+          <span class="color-dot" style="background:#E8A0A0;"></span> Rose
+        </div>
+        <div class="chip" data-value="Gris" data-group="color">
+          <span class="color-dot" style="background:#8A8A8A;"></span> Gris
+        </div>
+        <div class="chip" data-value="Marron" data-group="color">
+          <span class="color-dot" style="background:#6B3F2A;"></span> Marron
+        </div>
       </div>
-
-      <div class="field">
-        <label for="colors">Couleurs préférées</label>
-        <input
-          type="text"
-          id="colors"
-          name="colors"
-          placeholder="ex. noir, beige, bleu marine…"
-        />
-      </div>
-
-      <div class="field">
-        <label for="occasion">Occasion</label>
-        <select id="occasion" name="occasion" required>
-          <option value="" disabled selected>Choisir une occasion…</option>
-          <option value="Travail / Bureau">Travail / Bureau</option>
-          <option value="Soirée entre amis">Soirée entre amis</option>
-          <option value="Rendez-vous romantique">Rendez-vous romantique</option>
-          <option value="Mariage / Cérémonie">Mariage / Cérémonie</option>
-          <option value="Sport / Gym">Sport / Gym</option>
-          <option value="Week-end détendu">Week-end détendu</option>
-          <option value="Soirée formelle / Gala">Soirée formelle / Gala</option>
-          <option value="Shopping / Balade en ville">Shopping / Balade en ville</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label for="saison">Saison</label>
-        <select id="saison" name="saison" required>
-          <option value="" disabled selected>Choisir une saison…</option>
-          <option value="Printemps">Printemps</option>
-          <option value="Été">Été</option>
-          <option value="Automne">Automne</option>
-          <option value="Hiver">Hiver</option>
-        </select>
-      </div>
-
-      <button type="submit" id="submitBtn">Générer ma tenue ✦</button>
-    </form>
-
-    <div class="loader" id="loader">
-      <span>Mirror réfléchit à ta tenue…</span>
     </div>
+
+    <hr class="divider" />
+
+    <!-- STYLE -->
+    <div class="section">
+      <span class="section-label">Style</span>
+      <div class="chips">
+        <div class="chip" data-value="Casual" data-group="style">Casual</div>
+        <div class="chip" data-value="Business casual" data-group="style">Business casual</div>
+        <div class="chip" data-value="Élégant" data-group="style">Élégant</div>
+        <div class="chip" data-value="Streetwear" data-group="style">Streetwear</div>
+        <div class="chip" data-value="Sportif" data-group="style">Sportif</div>
+        <div class="chip" data-value="Bohème" data-group="style">Bohème</div>
+        <div class="chip" data-value="Minimaliste" data-group="style">Minimaliste</div>
+        <div class="chip" data-value="Rock" data-group="style">Rock</div>
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- OCCASION -->
+    <div class="section">
+      <span class="section-label">Occasion</span>
+      <div class="chips">
+        <div class="chip" data-value="Travail" data-group="occasion">Travail</div>
+        <div class="chip" data-value="Soirée entre amis" data-group="occasion">Soirée entre amis</div>
+        <div class="chip" data-value="Rendez-vous" data-group="occasion">Rendez-vous</div>
+        <div class="chip" data-value="Mariage" data-group="occasion">Mariage</div>
+        <div class="chip" data-value="Sport" data-group="occasion">Sport</div>
+        <div class="chip" data-value="Week-end" data-group="occasion">Week-end</div>
+        <div class="chip" data-value="Shopping" data-group="occasion">Shopping</div>
+        <div class="chip" data-value="Voyage" data-group="occasion">Voyage</div>
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- SAISON -->
+    <div class="section">
+      <span class="section-label">Saison</span>
+      <div class="seasons">
+        <button class="season-btn" data-value="Printemps">Printemps</button>
+        <button class="season-btn" data-value="Été">Été</button>
+        <button class="season-btn" data-value="Automne">Automne</button>
+        <button class="season-btn" data-value="Hiver">Hiver</button>
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- DRESSING -->
+    <div class="section">
+      <span class="section-label">Mon dressing <span style="font-size:0.65rem; color:var(--gold); letter-spacing:1px;">OPTIONNEL</span></span>
+      <textarea
+        id="dressing"
+        placeholder="Décris ce que tu as déjà — ex. jean slim noir, blazer beige, sneakers blanches…"
+        rows="3"
+        style="
+          width:100%;
+          background:#F5F0E8;
+          border:1.5px solid var(--cream-border);
+          border-radius:14px;
+          padding:0.85rem 1rem;
+          font-family:'Inter',sans-serif;
+          font-size:0.85rem;
+          color:var(--text);
+          resize:none;
+          outline:none;
+          transition:border-color 0.18s;
+          line-height:1.6;
+        "
+        onfocus="this.style.borderColor='var(--gold-light)'"
+        onblur="this.style.borderColor='var(--cream-border)'"
+      ></textarea>
+    </div>
+
+    <!-- GENERATE -->
+    <button class="generate-btn" id="generateBtn">Générer ma tenue</button>
+
+    <!-- LOADER -->
+    <div class="loader" id="loader">
+      <div class="loader-dots">
+        <span></span><span></span><span></span>
+      </div>
+      <p class="loader-text">Mirror réfléchit…</p>
+    </div>
+
   </div>
 
+  <!-- RESULT -->
   <div id="result">
-    <h2>Ta tenue Mirror</h2>
+    <p class="result-label">Ta tenue Mirror</p>
+    <div class="outfit-title" id="outfit-title"></div>
     <div id="outfit-text"></div>
   </div>
 
   <script>
     const API_BASE = '';
 
-    document.getElementById('mirrorForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
+    // ── State ──
+    const selected = { color: [], style: null, occasion: null, saison: null };
 
-      const btn = document.getElementById('submitBtn');
+    // ── Color chips (multi-select) ──
+    document.querySelectorAll('.chip[data-group="color"]').forEach(chip => {
+      chip.addEventListener('click', () => {
+        chip.classList.toggle('active');
+        const val = chip.dataset.value;
+        if (chip.classList.contains('active')) {
+          selected.color.push(val);
+        } else {
+          selected.color = selected.color.filter(v => v !== val);
+        }
+      });
+    });
+
+    // ── Style chips (single-select) ──
+    document.querySelectorAll('.chip[data-group="style"]').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.chip[data-group="style"]').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        selected.style = chip.dataset.value;
+      });
+    });
+
+    // ── Occasion chips (single-select) ──
+    document.querySelectorAll('.chip[data-group="occasion"]').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.chip[data-group="occasion"]').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        selected.occasion = chip.dataset.value;
+      });
+    });
+
+    // ── Season buttons ──
+    document.querySelectorAll('.season-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.season-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selected.saison = btn.dataset.value;
+      });
+    });
+
+    // ── Generate ──
+    document.getElementById('generateBtn').addEventListener('click', async () => {
+      if (!selected.style) return alert('Choisis un style.');
+      if (!selected.occasion) return alert('Choisis une occasion.');
+      if (!selected.saison) return alert('Choisis une saison.');
+
+      const btn = document.getElementById('generateBtn');
       const loader = document.getElementById('loader');
       const result = document.getElementById('result');
-      const outfitText = document.getElementById('outfit-text');
-
-      const payload = {
-        style: document.getElementById('style').value,
-        colors: document.getElementById('colors').value,
-        occasion: document.getElementById('occasion').value,
-        saison: document.getElementById('saison').value,
-      };
 
       btn.disabled = true;
       loader.style.display = 'block';
@@ -246,24 +484,28 @@
         const response = await fetch(`${API_BASE}/api/generate-outfit`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({
+            style: selected.style,
+            colors: selected.color.join(', ') || 'sans préférence',
+            occasion: selected.occasion,
+            saison: selected.saison,
+            dressing: document.getElementById('dressing').value.trim(),
+          }),
         });
 
         const data = await response.json();
-
         if (!response.ok) throw new Error(data.error || 'Erreur serveur');
 
-        // Render markdown-like bold text
-        const formatted = data.outfit
-          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\n/g, '<br/>');
-
-        outfitText.innerHTML = formatted;
+        const lines = data.outfit.split('\n').filter(l => l.trim());
+        const title = lines[0] || '';
+        const body = lines.slice(1).join('\n').trim();
+        document.getElementById('outfit-title').textContent = title;
+        document.getElementById('outfit-text').textContent = body;
         result.style.display = 'block';
-        result.scrollIntoView({ behavior: 'smooth' });
+        result.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
       } catch (err) {
-        outfitText.textContent = `Erreur : ${err.message}`;
+        document.getElementById('outfit-text').textContent = `Erreur : ${err.message}`;
         result.style.display = 'block';
       } finally {
         btn.disabled = false;
