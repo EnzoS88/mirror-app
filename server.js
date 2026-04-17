@@ -1,4 +1,3 @@
-require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 const express = require('express');
 const path = require('path');
 const Anthropic = require('@anthropic-ai/sdk');
@@ -25,12 +24,12 @@ Couleurs : ${colors || 'sans préférence'}
 Occasion : ${occasion}
 Saison : ${saison}${dressingLine ? '\n' + dressingLine : ''}
 
-RÈGLE ABSOLUE : Chaque tenue doit être UNIQUE et DIFFÉRENTE. Même si le style et la saison sont identiques, propose une combinaison de pièces, matières, coupes et accessoires entièrement nouvelles. Ne répète jamais les mêmes associations. Varie systématiquement : les coupes (slim, large, oversize, ajusté), les matières (lin, coton, laine, velours, denim, soie), les superpositions (veste, blazer, cardigan, manteau, trench), et les accessoires (ceinture, sac, bijoux, chapeau, écharpe).
+RÈGLE ABSOLUE : Chaque tenue doit être radicalement différente des précédentes. Interdis-toi de répéter ces combinaisons : jamais deux fois le même type de bas (robe, pantalon, jupe, short, combinaison), jamais le même type de chaussures (sandales, mules, escarpins, baskets, boots), jamais le même sac (raphia, cuir, pochette, tote, bandoulière), jamais la même phrase de conclusion. Chaque génération doit surprendre. Varie aussi les matières : lin, soie, coton, velours, denim, satin, broderie. Varie les silhouettes : ajustée, oversize, fluide, structurée, courte, longue.
 
 Structure exacte — respecte les sauts de ligne :
 LIGNE 1 : Le nom poétique de la tenue — court, évocateur, sans verbe. Exemple : "L'Heure dorée du dimanche"
 LIGNE 2 (vide)
-LIGNE 3+ : 2-3 phrases naturelles qui décrivent les pièces concrètes.${dressing ? ' Intègre naturellement une pièce du dressing si elle correspond.' : ''} Glisse 2 ou 3 emojis subtils et bien placés — pas en début de phrase. Termine par une phrase courte et sincère qui donne vraiment confiance.
+LIGNE 3+ : 2-3 phrases naturelles qui décrivent les pièces concrètes.${dressing ? ' Intègre naturellement une pièce du dressing si elle correspond.' : ''} Glisse 2 ou 3 emojis subtils et bien placés — pas en début de phrase. Termine par une phrase courte et sincère qui donne vraiment confiance. Ne répète jamais la même phrase de conclusion.
 
 Maximum 80 mots. Parle comme un ami, pas comme une publicité.`;
 
