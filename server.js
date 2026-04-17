@@ -15,6 +15,7 @@ app.post('/api/generate-outfit', async (req, res) => {
     return res.status(400).json({ error: 'Champs manquants : style, occasion et saison sont requis.' });
   }
 
+  const { forbiddenType } = req.body;
   const dressingLine = dressing ? `Dressing disponible : ${dressing}` : '';
 
   const prompt = `Tu es Mirror, un ami styliste personnel. Réponds en français, sans markdown, sans tirets, sans listes.
@@ -23,6 +24,7 @@ Style : ${style}
 Couleurs : ${colors || 'sans préférence'}
 Occasion : ${occasion}
 Saison : ${saison}${dressingLine ? '\n' + dressingLine : ''}
+Type de vêtement interdit cette fois : ${forbiddenType || 'aucun'}
 
 RÈGLE ABSOLUE : Chaque tenue doit être radicalement différente des précédentes. Interdis-toi de répéter ces combinaisons : jamais deux fois le même type de bas (robe, pantalon, jupe, short, combinaison), jamais le même type de chaussures (sandales, mules, escarpins, baskets, boots), jamais le même sac (raphia, cuir, pochette, tote, bandoulière), jamais la même phrase de conclusion. Chaque génération doit surprendre. Varie aussi les matières : lin, soie, coton, velours, denim, satin, broderie. Varie les silhouettes : ajustée, oversize, fluide, structurée, courte, longue.
 

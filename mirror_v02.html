@@ -426,6 +426,18 @@
     // ── State ──
     const selected = { color: [], style: null, occasion: null, saison: null };
 
+    // ── Rotation des types de vêtements ──
+    const outfitTypes = ['robe', 'jupe+haut', 'pantalon+top', 'combinaison'];
+    let outfitTypeIndex = 0;
+
+    function getCurrentForbiddenType() {
+      return outfitTypes[outfitTypeIndex];
+    }
+
+    function advanceOutfitType() {
+      outfitTypeIndex = (outfitTypeIndex + 1) % outfitTypes.length;
+    }
+
     // ── Color chips (multi-select) ──
     document.querySelectorAll('.chip[data-group="color"]').forEach(chip => {
       chip.addEventListener('click', () => {
@@ -490,12 +502,14 @@
             occasion: selected.occasion,
             saison: selected.saison,
             dressing: document.getElementById('dressing').value.trim(),
+            forbiddenType: getCurrentForbiddenType(),
           }),
         });
 
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'Erreur serveur');
 
+        advanceOutfitType();
         const lines = data.outfit.split('\n').filter(l => l.trim());
         const title = lines[0] || '';
         const body = lines.slice(1).join('\n').trim();
