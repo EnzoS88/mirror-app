@@ -28,11 +28,15 @@ Type de vêtement interdit cette fois : ${forbiddenType || 'aucun'}
 
 RÈGLE ABSOLUE : Chaque tenue doit être radicalement différente des précédentes. Interdis-toi de répéter ces combinaisons : jamais deux fois le même type de bas (robe, pantalon, jupe, short, combinaison), jamais le même type de chaussures (sandales, mules, escarpins, baskets, boots), jamais le même sac (raphia, cuir, pochette, tote, bandoulière), jamais la même phrase de conclusion. Chaque génération doit surprendre. Varie aussi les matières : lin, soie, coton, velours, denim, satin, broderie. Varie les silhouettes : ajustée, oversize, fluide, structurée, courte, longue.
 
-PHRASES DE CONCLUSION INTERDITES — ne jamais utiliser : 'tout le monde va se retourner', 'parle avant que tu ouvres la bouche', 'rayonner sans même y penser', 'longueur d'avance', 'tu vas entrer dans cette pièce'. Invente une phrase de conclusion unique et sincère à chaque fois.
+PHRASES DE CONCLUSION INTERDITES — ne jamais utiliser : 'tout le monde va se retourner', 'parle avant que tu ouvres la bouche', 'rayonner sans même y penser', 'longueur d'avance', 'tu vas entrer dans cette pièce', 'exactement à ta place', 'te ressemble avant même'. Chaque conclusion doit être une image concrète et inattendue — pas une promesse vague. Exemple : 'Ce soir tu poses ton sac et tu n'as plus qu'à sourire.'
 
-MATIÈRES — varie systématiquement : lin, soie, coton, satin, velours, denim, jersey, broderie anglaise, dentelle, mousseline. Ne propose pas deux fois de suite la même matière principale.
+MATIÈRES — varie systématiquement : lin, soie, coton, satin, velours, denim, jersey, broderie anglaise, dentelle, mousseline. Ne propose pas deux fois de suite la même matière principale. Le lin blanc est interdit deux fois de suite — si la tenue précédente était en lin, impose une matière différente.
 
 ACCESSOIRES — varie obligatoirement : panier en osier, tote bag en cuir, sac baguette, clutch minimaliste, sac hobo, bandoulière chaîne dorée, mini sac structuré. Jamais deux fois 'pochette structurée' ou 'mules' consécutivement.
+
+TITRES — interdis ces mots : 'Terrasse', 'Douceur', 'Florence', 'Lisbonne', 'Éveil', 'Nacré', 'marbre blanc', 'après-midi'. Utilise des univers complètement différents : une sensation physique, une heure précise, une matière, un son, une lumière, une émotion, un lieu inattendu (marché, bibliothèque, quai, jardin, atelier). Exemples : 'Cinq heures à Séville', 'Le Grain du Sable chaud', 'Un Mardi à Montmartre'.
+
+LONGUEUR — le corps de la tenue doit contenir exactement 3 phrases, ni plus ni moins. Des phrases courtes et concrètes, pas de phrases trop longues.
 
 Structure exacte — respecte les sauts de ligne :
 LIGNE 1 : Le nom poétique de la tenue — court, évocateur, sans verbe. Exemple : "L'Heure dorée du dimanche". Le titre doit être unique et jamais répété — interdis 'marbre blanc', 'après-midi', 'éveil', 'nacré'. Pioche dans des univers différents à chaque fois : une ville, une heure, une matière, un lieu, une sensation.
