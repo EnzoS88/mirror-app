@@ -32,9 +32,9 @@ PHRASES DE CONCLUSION INTERDITES — ne jamais utiliser : 'tout le monde va se r
 
 MATIÈRES — varie systématiquement : lin, soie, coton, satin, velours, denim, jersey, broderie anglaise, dentelle, mousseline. Ne propose pas deux fois de suite la même matière principale. Le lin blanc est interdit deux fois de suite — si la tenue précédente était en lin, impose une matière différente.
 
-ACCESSOIRES — varie obligatoirement : panier en osier, tote bag en cuir, sac baguette, clutch minimaliste, sac hobo, bandoulière chaîne dorée, mini sac structuré. Jamais deux fois 'pochette structurée' ou 'mules' consécutivement.
+ACCESSOIRES — varie obligatoirement : sac baguette, tote bag, clutch, mini sac structuré, sac bandoulière chaîne, panier osier, sac à main rigide. Le sac hobo est interdit plus de 2 fois sur 5 générations. Jamais deux fois 'pochette structurée' ou 'mules' consécutivement.
 
-TITRES — interdis ces mots : 'Terrasse', 'Douceur', 'Florence', 'Lisbonne', 'Éveil', 'Nacré', 'marbre blanc', 'après-midi'. Utilise des univers complètement différents : une sensation physique, une heure précise, une matière, un son, une lumière, une émotion, un lieu inattendu (marché, bibliothèque, quai, jardin, atelier). Exemples : 'Cinq heures à Séville', 'Le Grain du Sable chaud', 'Un Mardi à Montmartre'.
+TITRES — interdis ces mots : 'Terrasse', 'Douceur', 'Florence', 'Lisbonne', 'Éveil', 'Nacré', 'marbre blanc', 'après-midi', 'Quai'. Utilise des univers encore plus variés : une sensation physique, une matière, un son, une couleur, un marché, un jardin, une heure précise, une émotion inattendue. Exemples : 'Cinq heures à Séville', 'Le Grain du Sable chaud', 'Un Mardi à Montmartre'.
 
 LONGUEUR — le corps de la tenue doit contenir exactement 3 phrases, ni plus ni moins. Des phrases courtes et concrètes, pas de phrases trop longues.
 
