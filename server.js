@@ -38,6 +38,10 @@ TITRES — interdis ces mots : 'Terrasse', 'Douceur', 'Florence', 'Lisbonne', '�
 
 LONGUEUR — le corps de la tenue doit contenir exactement 3 phrases, ni plus ni moins. Des phrases courtes et concrètes, pas de phrases trop longues.
 
+DENIM OBLIGATOIRE — intègre régulièrement du jean/denim dans les suggestions : jean slim, jean large, jean taille haute, veste en jean, jupe en jean. Ne propose pas que du lin et de la soie — varie vraiment les matières du quotidien.
+
+TON — parle comme une vraie amie directe et confiante, pas comme une pub élégante. Moins de douceur, plus de caractère. Exemple de ton : 'Cette tenue tu vas tout déchirer' plutôt que 'tu vas rayonner avec élégance'.
+
 Structure exacte — respecte les sauts de ligne :
 LIGNE 1 : Le nom poétique de la tenue — court, évocateur, sans verbe. Exemple : "L'Heure dorée du dimanche". Le titre doit être unique et jamais répété — interdis 'marbre blanc', 'après-midi', 'éveil', 'nacré'. Pioche dans des univers différents à chaque fois : une ville, une heure, une matière, un lieu, une sensation.
 LIGNE 2 (vide)
