@@ -279,6 +279,20 @@
 
     let selectedGenre = null;
 
+    // ── Sauvegarde genre via backend ──
+    async function saveGenre(token, genre) {
+      try {
+        await fetch('/api/update-genre', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ genre })
+        });
+      } catch (e) { /* silencieux */ }
+    }
+
     // ── Validation mot de passe ──
     function validatePassword() {
       const pw = document.getElementById('su-password').value;
@@ -344,21 +358,21 @@
         return showMsg(msgEl, 'error', error.message);
       }
 
-      // Enregistrer le genre via le backend
-      const token = data.session?.access_token;
-      if (token) {
-        await fetch('/api/update-genre', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ genre: selectedGenre })
-        });
-      }
+      // Stocker le genre en attendant la confirmation email
+      localStorage.setItem('mirror_pending_genre', selectedGenre);
 
-      showMsg(msgEl, 'success', 'Compte créé ! Redirection…');
-      setTimeout(() => window.location.href = '/', 1200);
+      if (data.session) {
+        // Pas de confirmation email requise → on sauvegarde et on redirige
+        await saveGenre(data.session.access_token, selectedGenre);
+        localStorage.removeItem('mirror_pending_genre');
+        showMsg(msgEl, 'success', 'Compte créé ! Redirection…');
+        setTimeout(() => window.location.href = '/', 1200);
+      } else {
+        // Confirmation email requise
+        btn.disabled = false;
+        btn.textContent = 'Créer mon compte';
+        showMsg(msgEl, 'success', '✉️ Vérifie ta boîte mail pour confirmer ton compte, puis connecte-toi.');
+      }
     }
 
     // ── Login ──
@@ -373,12 +387,23 @@
       btn.disabled = true;
       btn.textContent = 'Connexion…';
 
-      const { error } = await sb.auth.signInWithPassword({ email, password });
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
 
       if (error) {
         btn.disabled = false;
         btn.textContent = 'Se connecter';
+        const msg = error.message.toLowerCase();
+        if (msg.includes('email not confirmed') || msg.includes('not confirmed')) {
+          return showMsg(msgEl, 'error', '✉️ Ton email n\'est pas encore confirmé. Vérifie ta boîte mail (et les spams).');
+        }
         return showMsg(msgEl, 'error', 'Email ou mot de passe incorrect.');
+      }
+
+      // Sauvegarder le genre si en attente (post-confirmation email)
+      const pendingGenre = localStorage.getItem('mirror_pending_genre');
+      if (pendingGenre && data.session) {
+        await saveGenre(data.session.access_token, pendingGenre);
+        localStorage.removeItem('mirror_pending_genre');
       }
 
       window.location.href = '/';
