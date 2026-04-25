@@ -200,6 +200,9 @@
     }
     .msg.error { background: #fdf0f0; color: #c0392b; border: 1px solid #f5c6c6; }
     .msg.success { background: #f0fdf4; color: #276749; border: 1px solid #c6f0d8; }
+
+    .rule { color: #c0392b; font-weight: 500; transition: color 0.2s; }
+    .rule.ok { color: #276749; }
   </style>
 </head>
 <body>
@@ -227,7 +230,13 @@
 
     <div class="field">
       <label>Mot de passe</label>
-      <input type="password" id="su-password" placeholder="Minimum 6 caractères" />
+      <input type="password" id="su-password" placeholder="Minimum 8 caractères" oninput="validatePassword()" />
+      <div id="pw-rules" style="margin-top:0.5rem; display:none; font-size:0.75rem; line-height:1.8;">
+        <div id="rule-length"  class="rule">✗ Au moins 8 caractères</div>
+        <div id="rule-upper"   class="rule">✗ Au moins 1 majuscule</div>
+        <div id="rule-number"  class="rule">✗ Au moins 1 chiffre</div>
+        <div id="rule-special" class="rule">✗ Au moins 1 caractère spécial (!@#$%^&*...)</div>
+      </div>
     </div>
 
     <div class="field">
@@ -270,6 +279,32 @@
 
     let selectedGenre = null;
 
+    // ── Validation mot de passe ──
+    function validatePassword() {
+      const pw = document.getElementById('su-password').value;
+      const rules = document.getElementById('pw-rules');
+      rules.style.display = pw.length > 0 ? 'block' : 'none';
+
+      const checks = {
+        'rule-length':  pw.length >= 8,
+        'rule-upper':   /[A-Z]/.test(pw),
+        'rule-number':  /[0-9]/.test(pw),
+        'rule-special': /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pw),
+      };
+
+      Object.entries(checks).forEach(([id, ok]) => {
+        const el = document.getElementById(id);
+        el.classList.toggle('ok', ok);
+        el.textContent = (ok ? '✓' : '✗') + ' ' + el.textContent.slice(2);
+      });
+
+      return Object.values(checks).every(Boolean);
+    }
+
+    function isPasswordValid() {
+      return validatePassword();
+    }
+
     // ── Tabs ──
     function showTab(tab) {
       document.getElementById('cardSignup').style.display = tab === 'signup' ? 'block' : 'none';
@@ -295,8 +330,8 @@
       const btn      = document.getElementById('signupBtn');
 
       if (!email || !password) return showMsg(msgEl, 'error', 'Email et mot de passe requis.');
-      if (password.length < 6)  return showMsg(msgEl, 'error', 'Mot de passe trop court (min. 6 caractères).');
-      if (!selectedGenre)        return showMsg(msgEl, 'error', 'Choisis ton genre pour continuer.');
+      if (!isPasswordValid())  return showMsg(msgEl, 'error', 'Le mot de passe ne respecte pas toutes les conditions.');
+      if (!selectedGenre)      return showMsg(msgEl, 'error', 'Choisis ton genre pour continuer.');
 
       btn.disabled = true;
       btn.textContent = 'Création en cours…';
