@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mirror — Créer un compte</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream: #F5F0E8;
+      --cream-dark: #EDE7D9;
+      --cream-border: #DDD5C4;
+      --gold: #B8964E;
+      --gold-light: #D4AA6A;
+      --text: #2C2416;
+      --text-muted: #8A7A68;
+      --chip-bg: #EDE7D9;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.5rem;
+    }
+
+    header { text-align: center; margin-bottom: 2.5rem; }
+
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+    .logo .ror { font-style: italic; color: var(--gold); }
+
+    .tagline {
+      font-size: 0.78rem;
+      font-weight: 400;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+
+    /* ── TABS ── */
+    .tabs {
+      display: flex;
+      background: var(--cream-dark);
+      border: 1.5px solid var(--cream-border);
+      border-radius: 100px;
+      padding: 3px;
+      gap: 2px;
+      margin-bottom: 2rem;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 0.55rem 1rem;
+      border-radius: 100px;
+      border: none;
+      background: transparent;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .tab-btn.active {
+      background: #FBF8F3;
+      color: var(--text);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: #FBF8F3;
+      border: 1px solid var(--cream-border);
+      border-radius: 24px;
+      padding: 2.2rem 2rem;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      font-style: italic;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.35rem;
+    }
+
+    .card-sub {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 1.8rem;
+    }
+
+    /* ── FIELDS ── */
+    .field { margin-bottom: 1.2rem; }
+
+    label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      background: var(--cream);
+      border: 1.5px solid var(--cream-border);
+      border-radius: 12px;
+      padding: 0.8rem 1rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.18s;
+    }
+    input:focus { border-color: var(--gold-light); }
+
+    /* ── GENRE CHIPS ── */
+    .genre-chips { display: flex; gap: 0.6rem; }
+
+    .genre-chip {
+      flex: 1;
+      padding: 0.6rem 0.5rem;
+      border-radius: 12px;
+      border: 1.5px solid var(--cream-border);
+      background: var(--chip-bg);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.18s ease;
+      user-select: none;
+    }
+    .genre-chip:hover { border-color: var(--gold-light); color: var(--text); }
+    .genre-chip.active {
+      background: var(--text);
+      border-color: var(--text);
+      color: var(--cream);
+    }
+
+    .genre-note {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      font-style: italic;
+    }
+
+    /* ── BUTTON ── */
+    .submit-btn {
+      width: 100%;
+      margin-top: 1.5rem;
+      padding: 1rem;
+      border-radius: 14px;
+      border: none;
+      background: var(--text);
+      color: var(--cream);
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem;
+      font-style: italic;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .submit-btn:hover { background: #3D3020; }
+    .submit-btn:disabled { background: var(--cream-border); color: var(--text-muted); cursor: not-allowed; }
+
+    /* ── MESSAGE ── */
+    .msg {
+      display: none;
+      margin-top: 1rem;
+      padding: 0.8rem 1rem;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+    .msg.error { background: #fdf0f0; color: #c0392b; border: 1px solid #f5c6c6; }
+    .msg.success { background: #f0fdf4; color: #276749; border: 1px solid #c6f0d8; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">Mir<span class="ror">ror</span></div>
+    <p class="tagline">Ton styliste personnel</p>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" id="tabSignup" onclick="showTab('signup')">Créer un compte</button>
+    <button class="tab-btn" id="tabLogin" onclick="showTab('login')">Se connecter</button>
+  </div>
+
+  <!-- SIGNUP CARD -->
+  <div class="card" id="cardSignup">
+    <p class="card-title">Bienvenue ✨</p>
+    <p class="card-sub">Crée ton compte Mirror en quelques secondes.</p>
+
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="su-email" placeholder="ton@email.com" />
+    </div>
+
+    <div class="field">
+      <label>Mot de passe</label>
+      <input type="password" id="su-password" placeholder="Minimum 6 caractères" />
+    </div>
+
+    <div class="field">
+      <label>Je m'habille pour</label>
+      <div class="genre-chips">
+        <div class="genre-chip" data-genre="Femme">Femme</div>
+        <div class="genre-chip" data-genre="Homme">Homme</div>
+        <div class="genre-chip" data-genre="Enfant">Enfant</div>
+      </div>
+      <p class="genre-note">Ce choix est définitif — il guide toutes tes tenues.</p>
+    </div>
+
+    <button class="submit-btn" id="signupBtn" onclick="handleSignup()">Créer mon compte</button>
+    <div class="msg" id="su-msg"></div>
+  </div>
+
+  <!-- LOGIN CARD -->
+  <div class="card" id="cardLogin" style="display:none;">
+    <p class="card-title">Bon retour ✨</p>
+    <p class="card-sub">Connecte-toi pour retrouver tes tenues.</p>
+
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="li-email" placeholder="ton@email.com" />
+    </div>
+
+    <div class="field">
+      <label>Mot de passe</label>
+      <input type="password" id="li-password" placeholder="Ton mot de passe" />
+    </div>
+
+    <button class="submit-btn" id="loginBtn" onclick="handleLogin()">Se connecter</button>
+    <div class="msg" id="li-msg"></div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://bflxfaksyiktauyxduqb.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_HCG-j-1SO9W3cn8cxRWPcw_yeroRMK0';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let selectedGenre = null;
+
+    // ── Tabs ──
+    function showTab(tab) {
+      document.getElementById('cardSignup').style.display = tab === 'signup' ? 'block' : 'none';
+      document.getElementById('cardLogin').style.display  = tab === 'login'  ? 'block' : 'none';
+      document.getElementById('tabSignup').classList.toggle('active', tab === 'signup');
+      document.getElementById('tabLogin').classList.toggle('active',  tab === 'login');
+    }
+
+    // ── Genre chips ──
+    document.querySelectorAll('.genre-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.genre-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        selectedGenre = chip.dataset.genre;
+      });
+    });
+
+    // ── Signup ──
+    async function handleSignup() {
+      const email    = document.getElementById('su-email').value.trim();
+      const password = document.getElementById('su-password').value;
+      const msgEl    = document.getElementById('su-msg');
+      const btn      = document.getElementById('signupBtn');
+
+      if (!email || !password) return showMsg(msgEl, 'error', 'Email et mot de passe requis.');
+      if (password.length < 6)  return showMsg(msgEl, 'error', 'Mot de passe trop court (min. 6 caractères).');
+      if (!selectedGenre)        return showMsg(msgEl, 'error', 'Choisis ton genre pour continuer.');
+
+      btn.disabled = true;
+      btn.textContent = 'Création en cours…';
+
+      const { data, error } = await sb.auth.signUp({ email, password });
+
+      if (error) {
+        btn.disabled = false;
+        btn.textContent = 'Créer mon compte';
+        return showMsg(msgEl, 'error', error.message);
+      }
+
+      // Enregistrer le genre via le backend
+      const token = data.session?.access_token;
+      if (token) {
+        await fetch('/api/update-genre', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ genre: selectedGenre })
+        });
+      }
+
+      showMsg(msgEl, 'success', 'Compte créé ! Redirection…');
+      setTimeout(() => window.location.href = '/', 1200);
+    }
+
+    // ── Login ──
+    async function handleLogin() {
+      const email    = document.getElementById('li-email').value.trim();
+      const password = document.getElementById('li-password').value;
+      const msgEl    = document.getElementById('li-msg');
+      const btn      = document.getElementById('loginBtn');
+
+      if (!email || !password) return showMsg(msgEl, 'error', 'Email et mot de passe requis.');
+
+      btn.disabled = true;
+      btn.textContent = 'Connexion…';
+
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        btn.disabled = false;
+        btn.textContent = 'Se connecter';
+        return showMsg(msgEl, 'error', 'Email ou mot de passe incorrect.');
+      }
+
+      window.location.href = '/';
+    }
+
+    // ── Helper ──
+    function showMsg(el, type, text) {
+      el.className = `msg ${type}`;
+      el.textContent = text;
+      el.style.display = 'block';
+    }
+
+    // ── Rediriger si déjà connecté ──
+    sb.auth.getSession().then(({ data: { session } }) => {
+      if (session) window.location.href = '/';
+    });
+  </script>
+
+</body>
+</html>

@@ -5,6 +5,36 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mirror</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+
+    /* ── USER BAR ── */
+    .user-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      background: #FBF8F3;
+      border-bottom: 1px solid var(--cream-border);
+      padding: 0.6rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 100;
+      font-size: 0.78rem;
+    }
+    .user-email { color: var(--text-muted); font-weight: 500; }
+    .logout-btn {
+      background: none;
+      border: 1.5px solid var(--cream-border);
+      border-radius: 100px;
+      padding: 0.3rem 0.85rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .logout-btn:hover { border-color: var(--text); color: var(--text); }
+  </style>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -281,7 +311,13 @@
 </head>
 <body>
 
-  <header>
+  <!-- USER BAR -->
+  <div class="user-bar" id="userBar" style="display:none;">
+    <span class="user-email" id="userEmail"></span>
+    <button class="logout-btn" onclick="handleLogout()">Déconnexion</button>
+  </div>
+
+  <header style="margin-top: 3rem;">
     <div class="logo">Mir<span class="ror">ror</span></div>
     <p class="tagline">Ton styliste personnel</p>
   </header>
@@ -423,6 +459,28 @@
   <script>
     const API_BASE = '';
 
+    // ── Supabase ──
+    const SUPABASE_URL = 'https://bflxfaksyiktauyxduqb.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_HCG-j-1SO9W3cn8cxRWPcw_yeroRMK0';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    let currentSession = null;
+
+    // Vérif auth au chargement
+    sb.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        window.location.href = '/signup';
+        return;
+      }
+      currentSession = session;
+      document.getElementById('userBar').style.display = 'flex';
+      document.getElementById('userEmail').textContent = session.user.email;
+    });
+
+    async function handleLogout() {
+      await sb.auth.signOut();
+      window.location.href = '/signup';
+    }
+
     // ── State ──
     const selected = { color: [], style: null, occasion: null, saison: null };
 
@@ -517,6 +575,18 @@
         document.getElementById('outfit-text').textContent = body;
         result.style.display = 'block';
         result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        // Sauvegarder la tenue si connecté
+        if (currentSession?.access_token && title) {
+          fetch('/api/save-tenue', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${currentSession.access_token}`
+            },
+            body: JSON.stringify({ titre: title, contenu: body })
+          }).catch(() => {}); // silencieux
+        }
 
       } catch (err) {
         document.getElementById('outfit-text').textContent = `Erreur : ${err.message}`;
