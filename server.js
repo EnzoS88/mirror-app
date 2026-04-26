@@ -166,6 +166,10 @@ app.get('/signup', (req, res) => {
   res.sendFile(path.join(__dirname, 'signup.html'));
 });
 
+app.get('/reset-password', (req, res) => {
+  res.sendFile(path.join(__dirname, 'reset-password.html'));
+});
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'mirror_v02.html'));
 });

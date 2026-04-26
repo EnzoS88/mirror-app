@@ -270,6 +270,25 @@
 
     <button class="submit-btn" id="loginBtn" onclick="handleLogin()">Se connecter</button>
     <div class="msg" id="li-msg"></div>
+
+    <p style="text-align:center; margin-top:1rem;">
+      <a href="#" onclick="showForgot(event)"
+         style="font-size:0.8rem; color:var(--text-muted); text-decoration:underline; cursor:pointer;">
+        Mot de passe oublié ?
+      </a>
+    </p>
+
+    <!-- FORGOT PASSWORD PANEL -->
+    <div id="forgotPanel" style="display:none; margin-top:1.2rem; border-top:1px solid var(--cream-border); padding-top:1.2rem;">
+      <label>Ton email</label>
+      <input type="email" id="forgot-email" placeholder="ton@email.com"
+             style="margin-top:0.5rem; width:100%; background:var(--cream); border:1.5px solid var(--cream-border);
+                    border-radius:12px; padding:0.8rem 1rem; font-family:'Inter',sans-serif; font-size:0.9rem;
+                    color:var(--text); outline:none;" />
+      <button class="submit-btn" id="forgotBtn" onclick="handleForgot()"
+              style="margin-top:1rem;">Envoyer le lien de réinitialisation</button>
+      <div class="msg" id="forgot-msg"></div>
+    </div>
   </div>
 
   <script>
@@ -393,10 +412,15 @@
         btn.disabled = false;
         btn.textContent = 'Se connecter';
         const msg = error.message.toLowerCase();
+
         if (msg.includes('email not confirmed') || msg.includes('not confirmed')) {
           return showMsg(msgEl, 'error', '✉️ Ton email n\'est pas encore confirmé. Vérifie ta boîte mail (et les spams).');
         }
-        return showMsg(msgEl, 'error', 'Email ou mot de passe incorrect.');
+        if (msg.includes('invalid login credentials') || msg.includes('invalid credentials')) {
+          return showMsg(msgEl, 'error', 'Mot de passe incorrect. Utilise "Mot de passe oublié ?" si besoin.');
+        }
+        // Afficher l'erreur brute pour tout autre cas inattendu
+        return showMsg(msgEl, 'error', error.message);
       }
 
       // Sauvegarder le genre si en attente (post-confirmation email)
@@ -407,6 +431,38 @@
       }
 
       window.location.href = '/';
+    }
+
+    // ── Mot de passe oublié ──
+    function showForgot(e) {
+      e.preventDefault();
+      const panel = document.getElementById('forgotPanel');
+      panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+      if (panel.style.display === 'block') {
+        document.getElementById('forgot-email').value =
+          document.getElementById('li-email').value; // pré-remplir
+      }
+    }
+
+    async function handleForgot() {
+      const email  = document.getElementById('forgot-email').value.trim();
+      const msgEl  = document.getElementById('forgot-msg');
+      const btn    = document.getElementById('forgotBtn');
+
+      if (!email) return showMsg(msgEl, 'error', 'Saisis ton email.');
+
+      btn.disabled = true;
+      btn.textContent = 'Envoi…';
+
+      const { error } = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://mirror-app-0mb5.onrender.com/reset-password'
+      });
+
+      btn.disabled = false;
+      btn.textContent = 'Envoyer le lien de réinitialisation';
+
+      if (error) return showMsg(msgEl, 'error', error.message);
+      showMsg(msgEl, 'success', '✉️ Email envoyé ! Vérifie ta boîte mail pour réinitialiser ton mot de passe.');
     }
 
     // ── Helper ──
