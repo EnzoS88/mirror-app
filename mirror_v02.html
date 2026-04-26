@@ -22,6 +22,20 @@
       font-size: 0.78rem;
     }
     .user-email { color: var(--text-muted); font-weight: 500; }
+    .bar-actions { display: flex; gap: 0.4rem; align-items: center; }
+    .bar-btn {
+      background: none;
+      border: 1.5px solid var(--cream-border);
+      border-radius: 100px;
+      padding: 0.3rem 0.85rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.18s;
+      white-space: nowrap;
+    }
+    .bar-btn:hover { border-color: var(--gold); color: var(--gold); }
     .logout-btn {
       background: none;
       border: 1.5px solid var(--cream-border);
@@ -34,6 +48,153 @@
       transition: all 0.18s;
     }
     .logout-btn:hover { border-color: var(--text); color: var(--text); }
+
+    /* ── PANELS ── */
+    .panel-overlay {
+      position: fixed; inset: 0;
+      background: rgba(44, 36, 22, 0.35);
+      z-index: 200;
+      display: none;
+      backdrop-filter: blur(2px);
+    }
+    .panel-overlay.open { display: block; }
+
+    .panel {
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: min(500px, 100vw);
+      background: #FBF8F3;
+      border-left: 1px solid var(--cream-border);
+      z-index: 201;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+      overflow: hidden;
+    }
+    .panel.open { transform: translateX(0); }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.2rem 1.5rem;
+      border-bottom: 1px solid var(--cream-border);
+      flex-shrink: 0;
+    }
+    .panel-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      font-style: italic;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .panel-close {
+      background: none; border: none; font-size: 1.2rem;
+      color: var(--text-muted); cursor: pointer; padding: 0.2rem 0.5rem;
+      border-radius: 6px; transition: color 0.15s;
+    }
+    .panel-close:hover { color: var(--text); }
+
+    .panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+    }
+
+    /* Dressing panel */
+    .panel-textarea {
+      width: 100%;
+      background: var(--cream);
+      border: 1.5px solid var(--cream-border);
+      border-radius: 14px;
+      padding: 0.9rem 1rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+      color: var(--text);
+      resize: none;
+      outline: none;
+      line-height: 1.6;
+      transition: border-color 0.18s;
+      min-height: 160px;
+    }
+    .panel-textarea:focus { border-color: var(--gold-light); }
+
+    .panel-save-btn {
+      width: 100%;
+      margin-top: 1rem;
+      padding: 0.85rem;
+      border-radius: 12px;
+      border: none;
+      background: var(--text);
+      color: var(--cream);
+      font-family: 'Playfair Display', serif;
+      font-size: 0.95rem;
+      font-style: italic;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .panel-save-btn:hover { background: #3D3020; }
+    .panel-save-btn:disabled { background: var(--cream-border); color: var(--text-muted); cursor: not-allowed; }
+
+    .panel-msg {
+      margin-top: 0.75rem;
+      font-size: 0.8rem;
+      text-align: center;
+      min-height: 1.2rem;
+      color: #276749;
+    }
+
+    /* Tenues panel */
+    .tenue-card {
+      background: var(--cream);
+      border: 1px solid var(--cream-border);
+      border-radius: 16px;
+      padding: 1.2rem;
+      margin-bottom: 1rem;
+    }
+    .tenue-titre {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-style: italic;
+      font-weight: 600;
+      color: var(--gold);
+      margin-bottom: 0.5rem;
+    }
+    .tenue-meta {
+      display: flex; flex-wrap: wrap; gap: 0.35rem;
+      margin-bottom: 0.75rem;
+    }
+    .tenue-tag {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      background: var(--cream-dark);
+      border: 1px solid var(--cream-border);
+      border-radius: 100px;
+      padding: 0.2rem 0.6rem;
+    }
+    .tenue-body {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.9rem;
+      line-height: 1.7;
+      color: var(--text);
+    }
+    .tenue-date {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 0.6rem;
+    }
+    .tenues-empty {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      padding: 3rem 0;
+      font-style: italic;
+    }
   </style>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -311,10 +472,47 @@
 </head>
 <body>
 
+  <!-- OVERLAY -->
+  <div class="panel-overlay" id="panelOverlay" onclick="closeAllPanels()"></div>
+
+  <!-- PANEL : MON DRESSING -->
+  <div class="panel" id="panelDressing">
+    <div class="panel-header">
+      <span class="panel-title">Mon dressing</span>
+      <button class="panel-close" onclick="closeAllPanels()">✕</button>
+    </div>
+    <div class="panel-body">
+      <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">
+        Décris les pièces que tu as déjà — Mirror les intégrera dans ses suggestions.
+      </p>
+      <textarea class="panel-textarea" id="panelDressingText"
+        placeholder="ex. jean slim noir, blazer beige, sneakers blanches, robe fleurie d'été…"></textarea>
+      <button class="panel-save-btn" id="panelDressingBtn" onclick="saveDressingFromPanel()">
+        Sauvegarder mon dressing
+      </button>
+      <p class="panel-msg" id="panelDressingMsg"></p>
+    </div>
+  </div>
+
+  <!-- PANEL : MES TENUES -->
+  <div class="panel" id="panelTenues">
+    <div class="panel-header">
+      <span class="panel-title">Mes tenues</span>
+      <button class="panel-close" onclick="closeAllPanels()">✕</button>
+    </div>
+    <div class="panel-body" id="panelTenuesList">
+      <p class="tenues-empty">Chargement…</p>
+    </div>
+  </div>
+
   <!-- USER BAR -->
   <div class="user-bar" id="userBar" style="display:none;">
     <span class="user-email" id="userEmail"></span>
-    <button class="logout-btn" onclick="handleLogout()">Déconnexion</button>
+    <div class="bar-actions">
+      <button class="bar-btn" onclick="openPanel('dressing')">Mon dressing</button>
+      <button class="bar-btn" onclick="openPanel('tenues')">Mes tenues</button>
+      <button class="logout-btn" onclick="handleLogout()">Déconnexion</button>
+    </div>
   </div>
 
   <header style="margin-top: 3rem;">
@@ -492,6 +690,105 @@
       window.location.href = '/signup';
     }
 
+    // ── Panneaux ──
+    function openPanel(name) {
+      closeAllPanels();
+      document.getElementById('panelOverlay').classList.add('open');
+      if (name === 'dressing') {
+        document.getElementById('panelDressing').classList.add('open');
+        // Sync le textarea du panneau avec le champ principal
+        document.getElementById('panelDressingText').value =
+          document.getElementById('dressing').value;
+        document.getElementById('panelDressingMsg').textContent = '';
+      }
+      if (name === 'tenues') {
+        document.getElementById('panelTenues').classList.add('open');
+        loadTenues();
+      }
+    }
+
+    function closeAllPanels() {
+      document.getElementById('panelOverlay').classList.remove('open');
+      document.getElementById('panelDressing').classList.remove('open');
+      document.getElementById('panelTenues').classList.remove('open');
+    }
+
+    // ── Sauvegarder depuis le panneau dressing ──
+    async function saveDressingFromPanel() {
+      const val = document.getElementById('panelDressingText').value.trim();
+      const btn = document.getElementById('panelDressingBtn');
+      const msg = document.getElementById('panelDressingMsg');
+
+      if (!currentSession?.access_token) return;
+      btn.disabled = true;
+      btn.textContent = 'Sauvegarde…';
+
+      try {
+        const r = await fetch('/api/save-dressing', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json',
+                     'Authorization': `Bearer ${currentSession.access_token}` },
+          body: JSON.stringify({ vetements: val })
+        });
+        const d = await r.json();
+        if (d.success) {
+          // Sync vers le champ principal
+          document.getElementById('dressing').value = val;
+          msg.style.color = '#276749';
+          msg.textContent = '✓ Dressing sauvegardé';
+        } else {
+          msg.style.color = '#c0392b';
+          msg.textContent = 'Erreur : ' + d.error;
+        }
+      } catch (e) {
+        msg.style.color = '#c0392b';
+        msg.textContent = 'Erreur réseau';
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Sauvegarder mon dressing';
+    }
+
+    // ── Charger les tenues ──
+    async function loadTenues() {
+      const list = document.getElementById('panelTenuesList');
+      if (!currentSession?.access_token) return;
+
+      list.innerHTML = '<p class="tenues-empty">Chargement…</p>';
+
+      try {
+        const r = await fetch('/api/tenues', {
+          headers: { 'Authorization': `Bearer ${currentSession.access_token}` }
+        });
+        const d = await r.json();
+
+        if (!d.tenues || d.tenues.length === 0) {
+          list.innerHTML = '<p class="tenues-empty">Aucune tenue générée pour l\'instant.</p>';
+          return;
+        }
+
+        list.innerHTML = d.tenues.map(t => {
+          const date = new Date(t.created_at).toLocaleDateString('fr-FR', {
+            day: 'numeric', month: 'long', year: 'numeric'
+          });
+          const tags = [t.style, t.occasion, t.saison]
+            .filter(Boolean)
+            .map(tag => `<span class="tenue-tag">${tag}</span>`)
+            .join('');
+          return `
+            <div class="tenue-card">
+              <div class="tenue-titre">${t.titre}</div>
+              ${tags ? `<div class="tenue-meta">${tags}</div>` : ''}
+              <div class="tenue-body">${t.contenu}</div>
+              <div class="tenue-date">${date}</div>
+            </div>`;
+        }).join('');
+
+      } catch (e) {
+        list.innerHTML = '<p class="tenues-empty">Erreur de chargement.</p>';
+      }
+    }
+
     // ── State ──
     const selected = { color: [], style: null, occasion: null, saison: null };
 
@@ -619,8 +916,14 @@
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${currentSession.access_token}`
             },
-            body: JSON.stringify({ titre: title, contenu: body })
-          }).catch(() => {}); // silencieux
+            body: JSON.stringify({
+              titre: title,
+              contenu: body,
+              style: selected.style,
+              occasion: selected.occasion,
+              saison: selected.saison
+            })
+          }).catch(e => console.error('save-tenue error:', e));
         }
 
       } catch (err) {

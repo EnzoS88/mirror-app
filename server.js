@@ -121,15 +121,37 @@ app.post('/api/save-tenue', async (req, res) => {
   const user = await getUserFromToken(req);
   if (!user) return res.status(401).json({ error: 'Non autorisé' });
 
-  const { titre, contenu } = req.body;
+  const { titre, contenu, style, occasion, saison } = req.body;
   if (!titre || !contenu) return res.status(400).json({ error: 'Titre et contenu requis' });
 
   const { error } = await supabase
     .from('tenues')
-    .insert({ user_id: user.id, titre, contenu });
+    .insert({ user_id: user.id, titre, contenu, style: style || null, occasion: occasion || null, saison: saison || null });
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) {
+    console.error('save-tenue error:', error);
+    return res.status(500).json({ error: error.message });
+  }
   res.json({ success: true });
+});
+
+// Récupérer l'historique des tenues
+app.get('/api/tenues', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'Non autorisé' });
+
+  const { data, error } = await supabase
+    .from('tenues')
+    .select('id, titre, contenu, style, occasion, saison, created_at')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) {
+    console.error('GET /api/tenues error:', error);
+    return res.status(500).json({ error: error.message });
+  }
+  res.json({ tenues: data });
 });
 
 // ── Génération de tenue ──
