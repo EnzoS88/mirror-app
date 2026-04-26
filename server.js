@@ -56,6 +56,38 @@ app.post('/api/update-genre', async (req, res) => {
   res.json({ success: true });
 });
 
+// Récupérer le dressing de l'utilisateur
+app.get('/api/dressing', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'Non autorisé' });
+
+  const { data, error } = await supabase
+    .from('dressing')
+    .select('vetements')
+    .eq('user_id', user.id)
+    .single();
+
+  if (error && error.code !== 'PGRST116') return res.status(500).json({ error: error.message });
+  res.json({ vetements: data?.vetements || '' });
+});
+
+// Sauvegarder le dressing (upsert)
+app.post('/api/save-dressing', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'Non autorisé' });
+
+  const { vetements } = req.body;
+  if (vetements === undefined) return res.status(400).json({ error: 'Champ vetements requis' });
+
+  const { error } = await supabase
+    .from('dressing')
+    .upsert({ user_id: user.id, vetements, updated_at: new Date().toISOString() },
+             { onConflict: 'user_id' });
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ success: true });
+});
+
 // Sauvegarder une tenue générée
 app.post('/api/save-tenue', async (req, res) => {
   const user = await getUserFromToken(req);

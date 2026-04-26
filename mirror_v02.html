@@ -465,8 +465,8 @@
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     let currentSession = null;
 
-    // Vérif auth au chargement
-    sb.auth.getSession().then(({ data: { session } }) => {
+    // Vérif auth au chargement + chargement du dressing
+    sb.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) {
         window.location.href = '/signup';
         return;
@@ -474,6 +474,17 @@
       currentSession = session;
       document.getElementById('userBar').style.display = 'flex';
       document.getElementById('userEmail').textContent = session.user.email;
+
+      // Charger le dressing sauvegardé
+      try {
+        const res = await fetch('/api/dressing', {
+          headers: { 'Authorization': `Bearer ${session.access_token}` }
+        });
+        const data = await res.json();
+        if (data.vetements) {
+          document.getElementById('dressing').value = data.vetements;
+        }
+      } catch (e) { /* silencieux */ }
     });
 
     async function handleLogout() {
@@ -575,6 +586,19 @@
         document.getElementById('outfit-text').textContent = body;
         result.style.display = 'block';
         result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        // Sauvegarder le dressing si connecté et non vide
+        const dressingVal = document.getElementById('dressing').value.trim();
+        if (currentSession?.access_token && dressingVal) {
+          fetch('/api/save-dressing', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${currentSession.access_token}`
+            },
+            body: JSON.stringify({ vetements: dressingVal })
+          }).catch(() => {});
+        }
 
         // Sauvegarder la tenue si connecté
         if (currentSession?.access_token && title) {
