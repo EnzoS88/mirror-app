@@ -12,42 +12,70 @@
     .user-bar {
       position: fixed;
       top: 0; left: 0; right: 0;
-      background: #FBF8F3;
-      border-bottom: 1px solid var(--cream-border);
-      padding: 0.6rem 1.5rem;
+      background: transparent;
+      padding: 0.75rem 1.25rem;
       display: flex;
       align-items: center;
-      justify-content: space-between;
       z-index: 100;
-      font-size: 0.78rem;
     }
-    .user-email { color: var(--text-muted); font-weight: 500; }
-    .bar-actions { display: flex; gap: 0.4rem; align-items: center; }
-    .bar-btn {
-      background: none;
-      border: 1.5px solid var(--cream-border);
-      border-radius: 100px;
-      padding: 0.3rem 0.85rem;
-      font-family: 'Inter', sans-serif;
-      font-size: 0.75rem;
-      color: var(--text-muted);
+
+    /* Avatar cercle doré */
+    .user-avatar {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: var(--gold);
+      color: #fff;
+      font-family: 'Playfair Display', serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
       cursor: pointer;
-      transition: all 0.18s;
-      white-space: nowrap;
+      user-select: none;
+      transition: background 0.18s, transform 0.15s;
+      position: relative;
     }
-    .bar-btn:hover { border-color: var(--gold); color: var(--gold); }
-    .logout-btn {
+    .user-avatar:hover { background: var(--gold-light); transform: scale(1.05); }
+
+    /* Dropdown */
+    .user-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      background: #FBF8F3;
+      border: 1px solid var(--cream-border);
+      border-radius: 14px;
+      padding: 0.4rem;
+      min-width: 180px;
+      box-shadow: 0 8px 24px rgba(44,36,22,0.12);
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+      z-index: 300;
+    }
+    .user-dropdown.open { display: flex; }
+
+    .dropdown-item {
+      display: block;
+      width: 100%;
+      padding: 0.6rem 0.9rem;
+      border: none;
       background: none;
-      border: 1.5px solid var(--cream-border);
-      border-radius: 100px;
-      padding: 0.3rem 0.85rem;
+      text-align: left;
       font-family: 'Inter', sans-serif;
-      font-size: 0.75rem;
-      color: var(--text-muted);
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text);
+      border-radius: 10px;
       cursor: pointer;
-      transition: all 0.18s;
+      transition: background 0.15s;
     }
-    .logout-btn:hover { border-color: var(--text); color: var(--text); }
+    .dropdown-item:hover { background: var(--cream-dark); }
+    .dropdown-item.danger { color: #c0392b; }
+    .dropdown-item.danger:hover { background: #fdf0f0; }
+    .dropdown-divider {
+      height: 1px; background: var(--cream-border);
+      margin: 0.3rem 0.5rem;
+    }
 
     /* ── PANELS ── */
     .panel-overlay {
@@ -507,11 +535,14 @@
 
   <!-- USER BAR -->
   <div class="user-bar" id="userBar" style="display:none;">
-    <span class="user-email" id="userEmail"></span>
-    <div class="bar-actions">
-      <button class="bar-btn" onclick="openPanel('dressing')">Mon dressing</button>
-      <button class="bar-btn" onclick="openPanel('tenues')">Mes tenues</button>
-      <button class="logout-btn" onclick="handleLogout()">Déconnexion</button>
+    <div class="user-avatar" id="userAvatar" onclick="toggleDropdown()">
+      <span id="userInitial">?</span>
+      <div class="user-dropdown" id="userDropdown">
+        <button class="dropdown-item" onclick="openPanel('dressing')">👗 Mon dressing</button>
+        <button class="dropdown-item" onclick="openPanel('tenues')">✨ Mes tenues</button>
+        <div class="dropdown-divider"></div>
+        <button class="dropdown-item danger" onclick="handleLogout()">Déconnexion</button>
+      </div>
     </div>
   </div>
 
@@ -671,7 +702,8 @@
       }
       currentSession = session;
       document.getElementById('userBar').style.display = 'flex';
-      document.getElementById('userEmail').textContent = session.user.email;
+      document.getElementById('userInitial').textContent =
+        (session.user.email?.[0] || '?').toUpperCase();
 
       // Charger le dressing sauvegardé
       try {
@@ -690,8 +722,21 @@
       window.location.href = '/signup';
     }
 
+    // ── Dropdown avatar ──
+    function toggleDropdown() {
+      document.getElementById('userDropdown').classList.toggle('open');
+    }
+
+    // Fermer le dropdown si clic en dehors
+    document.addEventListener('click', (e) => {
+      if (!document.getElementById('userAvatar')?.contains(e.target)) {
+        document.getElementById('userDropdown')?.classList.remove('open');
+      }
+    });
+
     // ── Panneaux ──
     function openPanel(name) {
+      document.getElementById('userDropdown').classList.remove('open');
       closeAllPanels();
       document.getElementById('panelOverlay').classList.add('open');
       if (name === 'dressing') {
