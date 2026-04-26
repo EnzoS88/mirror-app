@@ -65,13 +65,18 @@ app.get('/api/dressing', async (req, res) => {
     .from('dressing')
     .select('vetements')
     .eq('user_id', user.id)
-    .single();
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-  if (error && error.code !== 'PGRST116') return res.status(500).json({ error: error.message });
+  if (error) {
+    console.error('GET /api/dressing error:', error);
+    return res.status(500).json({ error: error.message });
+  }
   res.json({ vetements: data?.vetements || '' });
 });
 
-// Sauvegarder le dressing (upsert)
+// Sauvegarder le dressing (select → update ou insert)
 app.post('/api/save-dressing', async (req, res) => {
   const user = await getUserFromToken(req);
   if (!user) return res.status(401).json({ error: 'Non autorisé' });
@@ -79,12 +84,35 @@ app.post('/api/save-dressing', async (req, res) => {
   const { vetements } = req.body;
   if (vetements === undefined) return res.status(400).json({ error: 'Champ vetements requis' });
 
-  const { error } = await supabase
+  // Chercher si une ligne existe déjà pour cet utilisateur
+  const { data: existing, error: selectError } = await supabase
     .from('dressing')
-    .upsert({ user_id: user.id, vetements, updated_at: new Date().toISOString() },
-             { onConflict: 'user_id' });
+    .select('id')
+    .eq('user_id', user.id)
+    .limit(1)
+    .maybeSingle();
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (selectError) {
+    console.error('save-dressing select error:', selectError);
+    return res.status(500).json({ error: selectError.message });
+  }
+
+  let error;
+  if (existing) {
+    ({ error } = await supabase
+      .from('dressing')
+      .update({ vetements, updated_at: new Date().toISOString() })
+      .eq('id', existing.id));
+  } else {
+    ({ error } = await supabase
+      .from('dressing')
+      .insert({ user_id: user.id, vetements }));
+  }
+
+  if (error) {
+    console.error('save-dressing write error:', error);
+    return res.status(500).json({ error: error.message });
+  }
   res.json({ success: true });
 });
 

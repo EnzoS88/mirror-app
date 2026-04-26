@@ -412,7 +412,7 @@
 
     <!-- DRESSING -->
     <div class="section">
-      <span class="section-label">Mon dressing <span style="font-size:0.65rem; color:var(--gold); letter-spacing:1px;">OPTIONNEL</span></span>
+      <span class="section-label">Mon dressing <span style="font-size:0.65rem; color:var(--gold); letter-spacing:1px;">OPTIONNEL</span><span id="dressing-saved" style="display:none; font-size:0.65rem; color:#276749; letter-spacing:1px; margin-left:0.5rem;">✓ SAUVEGARDÉ</span></span>
       <textarea
         id="dressing"
         placeholder="Décris ce que tu as déjà — ex. jean slim noir, blazer beige, sneakers blanches…"
@@ -597,7 +597,18 @@
               'Authorization': `Bearer ${currentSession.access_token}`
             },
             body: JSON.stringify({ vetements: dressingVal })
-          }).catch(() => {});
+          })
+          .then(r => r.json())
+          .then(d => {
+            if (d.success) {
+              const badge = document.getElementById('dressing-saved');
+              badge.style.display = 'inline';
+              setTimeout(() => badge.style.display = 'none', 3000);
+            } else {
+              console.error('save-dressing:', d.error);
+            }
+          })
+          .catch(e => console.error('save-dressing fetch error:', e));
         }
 
         // Sauvegarder la tenue si connecté
