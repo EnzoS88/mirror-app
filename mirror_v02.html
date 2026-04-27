@@ -275,6 +275,103 @@
       color: #8A7A68;
       margin-top: 1rem;
     }
+
+    /* Plans d'abonnement */
+    .plans-grid {
+      display: flex;
+      gap: 1rem;
+      margin: 1.5rem 0 0.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .plan-card {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 18px;
+      padding: 1.4rem 1.2rem;
+      flex: 1;
+      min-width: 180px;
+      max-width: 220px;
+      position: relative;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .plan-card:hover { background: rgba(255,255,255,0.11); }
+    .plan-card--featured {
+      border-color: var(--gold);
+      background: rgba(184,150,78,0.12);
+    }
+    .plan-badge {
+      position: absolute;
+      top: -10px; left: 50%; transform: translateX(-50%);
+      background: var(--gold);
+      color: #2C2416;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+    .plan-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--cream);
+      margin-bottom: 0.5rem;
+    }
+    .plan-price {
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: var(--gold-light);
+      line-height: 1;
+      margin-bottom: 0.6rem;
+    }
+    .plan-price span {
+      font-size: 0.8rem;
+      font-weight: 400;
+      color: #C8B99A;
+    }
+    .plan-features {
+      font-size: 0.75rem;
+      color: #C8B99A;
+      line-height: 1.5;
+      margin-bottom: 1rem;
+    }
+    .plan-btn {
+      width: 100%;
+      padding: 0.65rem 0;
+      border-radius: 12px;
+      border: 1.5px solid rgba(255,255,255,0.2);
+      background: transparent;
+      color: var(--cream);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .plan-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.35); }
+    .plan-btn--gold {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: #2C2416;
+    }
+    .plan-btn--gold:hover { background: var(--gold-light); border-color: var(--gold-light); }
+    .plan-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    /* Toast succès abonnement */
+    .subscribe-toast {
+      display: none;
+      position: fixed;
+      bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+      background: #276749; color: #fff;
+      padding: 0.75rem 1.5rem;
+      border-radius: 14px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      z-index: 9999;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
   </style>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -745,11 +842,31 @@
     <div class="premium-icon">✦</div>
     <div class="premium-title">Tu as utilisé tes 3 tenues du jour</div>
     <p class="premium-text">
-      Mirror t'a accompagnée aujourd'hui — et il reviendra demain avec de nouvelles idées.<br><br>
-      Avec Mirror Premium, génère des tenues sans limite, accède à ton historique complet et débloque des styles exclusifs.
+      Mirror t'a accompagnée aujourd'hui — et il reviendra demain.<br>
+      Ou passe à l'illimité et génère autant que tu veux, quand tu veux.
     </p>
+
+    <div class="plans-grid">
+      <div class="plan-card">
+        <div class="plan-name">Standard</div>
+        <div class="plan-price">5,99€<span>/mois</span></div>
+        <div class="plan-features">Générations illimitées<br>chaque jour</div>
+        <button class="plan-btn" id="btnStandard" onclick="subscribe('standard')">Choisir Standard</button>
+      </div>
+      <div class="plan-card plan-card--featured">
+        <div class="plan-badge">Populaire</div>
+        <div class="plan-name">Premium</div>
+        <div class="plan-price">10,99€<span>/mois</span></div>
+        <div class="plan-features">Générations illimitées<br>+ styles exclusifs</div>
+        <button class="plan-btn plan-btn--gold" id="btnPremium" onclick="subscribe('premium')">Choisir Premium</button>
+      </div>
+    </div>
+
     <p class="premium-reset">Tes générations se renouvellent chaque jour à minuit ✦</p>
   </div>
+
+  <!-- Toast retour Stripe -->
+  <div class="subscribe-toast" id="subscribeToast"></div>
 
   <!-- RESULT -->
   <div id="result">
@@ -904,6 +1021,52 @@
 
       } catch (e) {
         list.innerHTML = '<p class="tenues-empty">Erreur de chargement.</p>';
+      }
+    }
+
+    // ── Retour Stripe (succès abonnement) ──
+    (function checkSubscribeReturn() {
+      const params = new URLSearchParams(window.location.search);
+      const plan = params.get('subscribed');
+      if (plan) {
+        const labels = { standard: 'Standard', premium: 'Premium' };
+        const toast = document.getElementById('subscribeToast');
+        toast.textContent = `✅ Abonnement ${labels[plan] || plan} activé — générations illimitées !`;
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 5000);
+        // Nettoyer l'URL sans recharger
+        window.history.replaceState({}, '', '/');
+      }
+    })();
+
+    // ── Stripe : redirection vers le checkout ──
+    async function subscribe(plan) {
+      const btnId = plan === 'standard' ? 'btnStandard' : 'btnPremium';
+      const btn = document.getElementById(btnId);
+      btn.disabled = true;
+      btn.textContent = 'Redirection…';
+
+      try {
+        const res = await fetch('/api/create-checkout-session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentSession?.access_token}`
+          },
+          body: JSON.stringify({ plan }),
+        });
+        const data = await res.json();
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          alert(data.error || 'Erreur lors de la redirection vers le paiement.');
+          btn.disabled = false;
+          btn.textContent = plan === 'standard' ? 'Choisir Standard' : 'Choisir Premium';
+        }
+      } catch (e) {
+        alert('Erreur réseau. Réessaie.');
+        btn.disabled = false;
+        btn.textContent = plan === 'standard' ? 'Choisir Standard' : 'Choisir Premium';
       }
     }
 

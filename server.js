@@ -3,8 +3,62 @@ const express = require('express');
 const path = require('path');
 const Anthropic = require('@anthropic-ai/sdk');
 const { createClient } = require('@supabase/supabase-js');
+const Stripe = require('stripe');
+
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
+
+// ── Webhook Stripe : raw body AVANT express.json() ──
+app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+  } catch (err) {
+    console.error('Webhook signature error:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    const userId = session.client_reference_id;
+    const plan   = session.metadata?.plan || 'standard';
+
+    if (userId) {
+      const { error } = await supabase
+        .from('users')
+        .update({ role: plan })
+        .eq('id', userId);
+
+      if (error) console.error('Webhook: update role error:', error.message);
+      else console.log(`Webhook: user ${userId} → role '${plan}'`);
+    }
+  }
+
+  if (event.type === 'customer.subscription.deleted') {
+    const sub = event.data.object;
+    const customerId = sub.customer;
+
+    // Retrouver l'utilisateur via stripe_customer_id ou email
+    const customer = await stripe.customers.retrieve(customerId);
+    const email = customer.email;
+    if (email) {
+      const { error } = await supabase
+        .from('users')
+        .update({ role: 'free' })
+        .eq('email', email);
+
+      if (error) console.error('Webhook: downgrade error:', error.message);
+      else console.log(`Webhook: ${email} downgraded → 'free'`);
+    }
+  }
+
+  res.json({ received: true });
+});
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
@@ -177,7 +231,7 @@ app.post('/api/generate-outfit', async (req, res) => {
       .maybeSingle();
 
     const role = profile?.role || 'free';
-    const isUnlimited = role === 'premium' || role === 'admin';
+    const isUnlimited = role === 'standard' || role === 'premium' || role === 'admin';
 
     if (!isUnlimited) {
       const { data: usage } = await supabase
@@ -269,6 +323,62 @@ Maximum 80 mots. Parle comme un ami, pas comme une publicité.`;
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Erreur lors de la génération de la tenue.' });
+  }
+});
+
+// ── Stripe Checkout ──
+app.post('/api/create-checkout-session', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'Non autorisé' });
+
+  const { plan } = req.body;
+  if (!['standard', 'premium'].includes(plan)) {
+    return res.status(400).json({ error: 'Plan invalide' });
+  }
+
+  const plans = {
+    standard: {
+      name: 'Mirror Standard',
+      description: 'Générations illimitées chaque jour',
+      amount: 599, // 5,99 €
+    },
+    premium: {
+      name: 'Mirror Premium',
+      description: 'Générations illimitées + styles exclusifs',
+      amount: 1099, // 10,99 €
+    },
+  };
+
+  const chosen = plans[plan];
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      payment_method_types: ['card'],
+      customer_email: user.email,
+      client_reference_id: user.id,
+      metadata: { plan },
+      line_items: [{
+        price_data: {
+          currency: 'eur',
+          product_data: {
+            name: chosen.name,
+            description: chosen.description,
+          },
+          unit_amount: chosen.amount,
+          recurring: { interval: 'month' },
+        },
+        quantity: 1,
+      }],
+      success_url: `${baseUrl}/?subscribed=${plan}`,
+      cancel_url:  `${baseUrl}/`,
+    });
+
+    res.json({ url: session.url });
+  } catch (err) {
+    console.error('Stripe checkout error:', err);
+    res.status(500).json({ error: 'Impossible de créer la session de paiement.' });
   }
 });
 
