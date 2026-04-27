@@ -169,28 +169,43 @@ app.post('/api/generate-outfit', async (req, res) => {
   if (user) {
     const today = new Date().toISOString().split('T')[0];
 
-    const { data: usage } = await supabase
-      .from('daily_usage')
-      .select('id, count')
-      .eq('user_id', user.id)
-      .eq('date', today)
+    // Récupérer le rôle de l'utilisateur
+    const { data: profile } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
       .maybeSingle();
 
-    const currentCount = usage?.count || 0;
+    const role = profile?.role || 'free';
+    const isUnlimited = role === 'premium' || role === 'admin';
 
-    if (currentCount >= DAILY_LIMIT) {
-      return res.status(429).json({
-        code: 'DAILY_LIMIT_REACHED',
-        used: currentCount,
-        limit: DAILY_LIMIT
-      });
+    if (!isUnlimited) {
+      const { data: usage } = await supabase
+        .from('daily_usage')
+        .select('id, count')
+        .eq('user_id', user.id)
+        .eq('date', today)
+        .maybeSingle();
+
+      const currentCount = usage?.count || 0;
+
+      if (currentCount >= DAILY_LIMIT) {
+        return res.status(429).json({
+          code: 'DAILY_LIMIT_REACHED',
+          used: currentCount,
+          limit: DAILY_LIMIT,
+          role
+        });
+      }
+
+      res.locals.usage = usage;
+      res.locals.currentCount = currentCount;
+      res.locals.today = today;
     }
 
-    // Incrémenter après génération réussie (stocké pour usage après le try/catch)
     res.locals.user = user;
-    res.locals.usage = usage;
-    res.locals.currentCount = currentCount;
-    res.locals.today = today;
+    res.locals.role = role;
+    res.locals.isUnlimited = isUnlimited;
   }
 
   const dressingLine = dressing ? `Dressing disponible : ${dressing}` : '';
@@ -235,9 +250,9 @@ Maximum 80 mots. Parle comme un ami, pas comme une publicité.`;
 
     const outfit = message.content[0].text;
 
-    // Incrémenter le compteur journalier
-    const { user, usage, currentCount, today } = res.locals;
-    if (user) {
+    // Incrémenter le compteur journalier (seulement pour les utilisateurs non-illimités)
+    const { user, usage, currentCount, today, isUnlimited } = res.locals;
+    if (user && !isUnlimited) {
       if (usage) {
         await supabase.from('daily_usage')
           .update({ count: currentCount + 1 })
@@ -248,7 +263,7 @@ Maximum 80 mots. Parle comme un ami, pas comme une publicité.`;
       }
     }
 
-    const remaining = user ? (DAILY_LIMIT - (currentCount + 1)) : null;
+    const remaining = (user && !isUnlimited) ? (DAILY_LIMIT - (currentCount + 1)) : null;
     res.json({ outfit, remaining });
 
   } catch (err) {
