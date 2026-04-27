@@ -689,6 +689,7 @@
       <div class="user-dropdown" id="userDropdown">
         <button class="dropdown-item" onclick="openPanel('dressing')">👗 Mon dressing</button>
         <button class="dropdown-item" onclick="openPanel('tenues')">✨ Mes tenues</button>
+        <a class="dropdown-item" id="adminLink" href="/admin" style="display:none; text-decoration:none;">⚙️ Dashboard Admin</a>
         <div class="dropdown-divider"></div>
         <button class="dropdown-item danger" onclick="handleLogout()">Déconnexion</button>
       </div>
@@ -894,6 +895,18 @@
       document.getElementById('userBar').style.display = 'flex';
       document.getElementById('userInitial').textContent =
         (session.user.email?.[0] || '?').toUpperCase();
+
+      // Afficher le lien admin si role = 'admin'
+      try {
+        const { data: profile } = await sb
+          .from('users')
+          .select('role')
+          .eq('id', session.user.id)
+          .maybeSingle();
+        if (profile?.role === 'admin') {
+          document.getElementById('adminLink').style.display = 'block';
+        }
+      } catch (e) { /* silencieux */ }
 
       // Charger le dressing sauvegardé
       try {
