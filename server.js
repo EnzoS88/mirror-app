@@ -162,6 +162,37 @@ app.post('/api/generate-outfit', async (req, res) => {
     return res.status(400).json({ error: 'Champs manquants : style, occasion et saison sont requis.' });
   }
 
+  // ── Vérification limite journalière ──
+  const user = await getUserFromToken(req);
+  const DAILY_LIMIT = 3;
+
+  if (user) {
+    const today = new Date().toISOString().split('T')[0];
+
+    const { data: usage } = await supabase
+      .from('daily_usage')
+      .select('id, count')
+      .eq('user_id', user.id)
+      .eq('date', today)
+      .maybeSingle();
+
+    const currentCount = usage?.count || 0;
+
+    if (currentCount >= DAILY_LIMIT) {
+      return res.status(429).json({
+        code: 'DAILY_LIMIT_REACHED',
+        used: currentCount,
+        limit: DAILY_LIMIT
+      });
+    }
+
+    // Incrémenter après génération réussie (stocké pour usage après le try/catch)
+    res.locals.user = user;
+    res.locals.usage = usage;
+    res.locals.currentCount = currentCount;
+    res.locals.today = today;
+  }
+
   const dressingLine = dressing ? `Dressing disponible : ${dressing}` : '';
 
   const prompt = `Tu es Mirror, un ami styliste personnel. Réponds en français, sans markdown, sans tirets, sans listes.
@@ -203,7 +234,22 @@ Maximum 80 mots. Parle comme un ami, pas comme une publicité.`;
     });
 
     const outfit = message.content[0].text;
-    res.json({ outfit });
+
+    // Incrémenter le compteur journalier
+    const { user, usage, currentCount, today } = res.locals;
+    if (user) {
+      if (usage) {
+        await supabase.from('daily_usage')
+          .update({ count: currentCount + 1 })
+          .eq('id', usage.id);
+      } else {
+        await supabase.from('daily_usage')
+          .insert({ user_id: user.id, date: today, count: 1 });
+      }
+    }
+
+    const remaining = user ? (DAILY_LIMIT - (currentCount + 1)) : null;
+    res.json({ outfit, remaining });
 
   } catch (err) {
     console.error(err);

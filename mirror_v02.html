@@ -223,6 +223,58 @@
       padding: 3rem 0;
       font-style: italic;
     }
+
+    /* ── COMPTEUR ── */
+    .usage-counter {
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      margin-top: 0.8rem;
+    }
+    .usage-counter .dots {
+      display: inline-flex; gap: 5px; vertical-align: middle; margin-right: 6px;
+    }
+    .usage-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--cream-border);
+      transition: background 0.3s;
+    }
+    .usage-dot.used { background: var(--gold); }
+
+    /* ── MESSAGE PREMIUM ── */
+    .premium-card {
+      display: none;
+      max-width: 580px;
+      margin: 1.8rem auto 0;
+      background: linear-gradient(135deg, #2C2416 0%, #3D3020 100%);
+      border-radius: 24px;
+      padding: 2.2rem 2rem;
+      text-align: center;
+      color: var(--cream);
+    }
+    .premium-card .premium-icon {
+      font-size: 2rem; margin-bottom: 1rem;
+    }
+    .premium-card .premium-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-style: italic;
+      font-weight: 600;
+      color: var(--gold-light);
+      margin-bottom: 0.75rem;
+    }
+    .premium-card .premium-text {
+      font-size: 0.88rem;
+      line-height: 1.7;
+      color: #C8B99A;
+      margin-bottom: 1.5rem;
+    }
+    .premium-card .premium-reset {
+      font-size: 0.75rem;
+      color: #8A7A68;
+      margin-top: 1rem;
+    }
   </style>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -668,6 +720,16 @@
     <!-- GENERATE -->
     <button class="generate-btn" id="generateBtn">Générer ma tenue</button>
 
+    <!-- COMPTEUR JOURNALIER -->
+    <div class="usage-counter" id="usageCounter" style="display:none;">
+      <span class="dots">
+        <span class="usage-dot" id="dot1"></span>
+        <span class="usage-dot" id="dot2"></span>
+        <span class="usage-dot" id="dot3"></span>
+      </span>
+      <span id="usageText">3 tenues restantes aujourd'hui</span>
+    </div>
+
     <!-- LOADER -->
     <div class="loader" id="loader">
       <div class="loader-dots">
@@ -676,6 +738,17 @@
       <p class="loader-text">Mirror réfléchit…</p>
     </div>
 
+  </div>
+
+  <!-- PREMIUM CARD -->
+  <div class="premium-card" id="premiumCard">
+    <div class="premium-icon">✦</div>
+    <div class="premium-title">Tu as utilisé tes 3 tenues du jour</div>
+    <p class="premium-text">
+      Mirror t'a accompagnée aujourd'hui — et il reviendra demain avec de nouvelles idées.<br><br>
+      Avec Mirror Premium, génère des tenues sans limite, accède à ton historique complet et débloque des styles exclusifs.
+    </p>
+    <p class="premium-reset">Tes générations se renouvellent chaque jour à minuit ✦</p>
   </div>
 
   <!-- RESULT -->
@@ -841,6 +914,26 @@
     const outfitTypes = ['robe', 'jupe+haut', 'pantalon+top', 'combinaison'];
     let outfitTypeIndex = 0;
 
+    // ── Compteur journalier ──
+    function updateUsageCounter(remaining) {
+      const counter = document.getElementById('usageCounter');
+      const text    = document.getElementById('usageText');
+      counter.style.display = 'block';
+
+      const used = 3 - remaining;
+      ['dot1','dot2','dot3'].forEach((id, i) => {
+        document.getElementById(id).classList.toggle('used', i < used);
+      });
+
+      if (remaining === 0) {
+        text.textContent = 'Limite du jour atteinte';
+      } else if (remaining === 1) {
+        text.textContent = '1 tenue restante aujourd\'hui';
+      } else {
+        text.textContent = `${remaining} tenues restantes aujourd'hui`;
+      }
+    }
+
     function getCurrentForbiddenType() {
       return outfitTypes[outfitTypeIndex];
     }
@@ -904,9 +997,14 @@
       result.style.display = 'none';
 
       try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (currentSession?.access_token) {
+          headers['Authorization'] = `Bearer ${currentSession.access_token}`;
+        }
+
         const response = await fetch(`${API_BASE}/api/generate-outfit`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({
             style: selected.style,
             colors: selected.color.join(', ') || 'sans préférence',
@@ -918,9 +1016,22 @@
         });
 
         const data = await response.json();
+
+        // Limite journalière atteinte
+        if (response.status === 429 && data.code === 'DAILY_LIMIT_REACHED') {
+          document.getElementById('premiumCard').style.display = 'block';
+          document.getElementById('premiumCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+          updateUsageCounter(0);
+          return;
+        }
+
         if (!response.ok) throw new Error(data.error || 'Erreur serveur');
 
         advanceOutfitType();
+        if (data.remaining !== undefined && data.remaining !== null) {
+          updateUsageCounter(data.remaining);
+        }
+        document.getElementById('premiumCard').style.display = 'none';
         const lines = data.outfit.split('\n').filter(l => l.trim());
         const title = lines[0] || '';
         const body = lines.slice(1).join('\n').trim();
