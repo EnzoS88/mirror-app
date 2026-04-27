@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mirror — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:        #F5F0E8;
+      --cream-dark:   #EDE7D9;
+      --cream-border: #DDD5C4;
+      --gold:         #B8964E;
+      --gold-light:   #D4AA6A;
+      --text:         #2C2416;
+      --text-muted:   #8A7A68;
+      --card-bg:      #FBF8F3;
+      --green:        #276749;
+      --red:          #c0392b;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 0 0 4rem;
+    }
+
+    /* ── Header ── */
+    .admin-header {
+      background: var(--text);
+      padding: 1.1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .admin-header .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--cream);
+      letter-spacing: -0.5px;
+    }
+    .admin-header .logo .ror { font-style: italic; color: var(--gold); }
+    .admin-header .badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gold);
+      border: 1px solid var(--gold);
+      border-radius: 20px;
+      padding: 3px 10px;
+    }
+    .admin-header .back-link {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .admin-header .back-link:hover { color: var(--gold-light); }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+    }
+
+    /* ── Page title ── */
+    .page-title {
+      padding: 2.5rem 2rem 0.5rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .page-title h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-style: italic;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .page-title p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 0.35rem;
+      letter-spacing: 0.5px;
+    }
+    #statsDate {
+      font-weight: 500;
+      color: var(--gold);
+    }
+
+    /* ── Grid stats ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      max-width: 1100px;
+      margin: 2rem auto 0;
+      padding: 0 2rem;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--cream-border);
+      border-radius: 20px;
+      padding: 1.6rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--gold), var(--gold-light));
+      border-radius: 20px 20px 0 0;
+    }
+    .stat-label {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.7rem;
+    }
+    .stat-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.8rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+    }
+    .stat-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.4rem;
+    }
+
+    /* ── Section cards ── */
+    .section {
+      max-width: 1100px;
+      margin: 2rem auto 0;
+      padding: 0 2rem;
+    }
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      font-style: italic;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 1rem;
+    }
+
+    /* ── Répartition rôles ── */
+    .roles-grid {
+      display: flex;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+    }
+    .role-pill {
+      background: var(--card-bg);
+      border: 1px solid var(--cream-border);
+      border-radius: 14px;
+      padding: 0.9rem 1.3rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+      min-width: 110px;
+      flex: 1;
+    }
+    .role-pill .role-count {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .role-pill .role-name {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .role-pill .role-bar {
+      width: 100%;
+      height: 4px;
+      background: var(--cream-border);
+      border-radius: 4px;
+      margin-top: 0.4rem;
+      overflow: hidden;
+    }
+    .role-pill .role-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: var(--gold);
+      transition: width 0.6s ease;
+    }
+    .role-pill[data-role="premium"] .role-bar-fill { background: #B8964E; }
+    .role-pill[data-role="standard"] .role-bar-fill { background: #7B9E87; }
+    .role-pill[data-role="admin"]    .role-bar-fill { background: #8B5CF6; }
+    .role-pill[data-role="free"]     .role-bar-fill { background: var(--cream-border); }
+
+    /* ── Table ── */
+    .users-table-wrap {
+      background: var(--card-bg);
+      border: 1px solid var(--cream-border);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    thead tr {
+      background: var(--cream-dark);
+    }
+    th {
+      padding: 0.75rem 1.2rem;
+      font-size: 0.67rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-align: left;
+    }
+    td {
+      padding: 0.85rem 1.2rem;
+      font-size: 0.84rem;
+      color: var(--text);
+      border-top: 1px solid var(--cream-border);
+    }
+    tbody tr:hover { background: var(--cream-dark); }
+    .role-tag {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+    .role-tag.free     { background: var(--cream-dark); color: var(--text-muted); }
+    .role-tag.standard { background: #E8F4EC; color: #276749; }
+    .role-tag.premium  { background: #FDF4E3; color: var(--gold); }
+    .role-tag.admin    { background: #F0EAFF; color: #8B5CF6; }
+
+    .genre-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    .genre-dot.femme  { background: #E8A0BF; }
+    .genre-dot.homme  { background: #7EB8D4; }
+    .genre-dot.enfant { background: #A8D08D; }
+
+    /* ── Loader / error ── */
+    .loader-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+    .loader-state .spin {
+      display: inline-block;
+      width: 28px; height: 28px;
+      border: 3px solid var(--cream-border);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 1rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Refresh btn ── */
+    .refresh-btn {
+      background: transparent;
+      border: 1.5px solid var(--cream-border);
+      border-radius: 12px;
+      padding: 0.45rem 1rem;
+      font-size: 0.78rem;
+      font-family: 'Inter', sans-serif;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .refresh-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .admin-header { padding: 1rem 1.2rem; }
+      .page-title, .stats-grid, .section { padding-left: 1.2rem; padding-right: 1.2rem; }
+      .stat-value { font-size: 2.2rem; }
+      td, th { padding: 0.65rem 0.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="admin-header">
+    <div class="logo">Mir<span class="ror">ror</span></div>
+    <div class="header-right">
+      <span class="badge">Admin</span>
+      <a href="/" class="back-link">← Retour à l'app</a>
+    </div>
+  </header>
+
+  <div id="mainContent" style="display:none;">
+
+    <div class="page-title">
+      <h1>Tableau de bord</h1>
+      <p>Dernière mise à jour : <span id="statsDate">—</span></p>
+    </div>
+
+    <!-- Chiffres clés -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Utilisateurs inscrits</div>
+        <div class="stat-value" id="valTotalUsers">—</div>
+        <div class="stat-sub">comptes créés au total</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Actifs aujourd'hui</div>
+        <div class="stat-value" id="valActiveToday">—</div>
+        <div class="stat-sub">utilisateurs distincts</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Tenues aujourd'hui</div>
+        <div class="stat-value" id="valOutfitsToday">—</div>
+        <div class="stat-sub">générées ce jour</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Tenues au total</div>
+        <div class="stat-value" id="valOutfitsTotal">—</div>
+        <div class="stat-sub">depuis le lancement</div>
+      </div>
+    </div>
+
+    <!-- Répartition rôles -->
+    <div class="section">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+        <div class="section-title" style="margin-bottom:0;">Répartition des rôles</div>
+        <button class="refresh-btn" onclick="loadStats()">↺ Actualiser</button>
+      </div>
+      <div class="roles-grid" id="rolesGrid">
+        <div class="role-pill" data-role="free">
+          <div class="role-count" id="roleFree">—</div>
+          <div class="role-name">Free</div>
+          <div class="role-bar"><div class="role-bar-fill" id="barFree" style="width:0%"></div></div>
+        </div>
+        <div class="role-pill" data-role="standard">
+          <div class="role-count" id="roleStandard">—</div>
+          <div class="role-name">Standard</div>
+          <div class="role-bar"><div class="role-bar-fill" id="barStandard" style="width:0%"></div></div>
+        </div>
+        <div class="role-pill" data-role="premium">
+          <div class="role-count" id="rolePremium">—</div>
+          <div class="role-name">Premium</div>
+          <div class="role-bar"><div class="role-bar-fill" id="barPremium" style="width:0%"></div></div>
+        </div>
+        <div class="role-pill" data-role="admin">
+          <div class="role-count" id="roleAdmin">—</div>
+          <div class="role-name">Admin</div>
+          <div class="role-bar"><div class="role-bar-fill" id="barAdmin" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 10 derniers inscrits -->
+    <div class="section">
+      <div class="section-title">10 derniers inscrits</div>
+      <div class="users-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Genre</th>
+              <th>Rôle</th>
+              <th>Inscrit le</th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody">
+            <tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:2rem;">Chargement…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- État loader / erreur -->
+  <div id="loaderState" class="loader-state">
+    <div class="spin"></div><br>Chargement des statistiques…
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://bflxfaksyiktauyxduqb.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_HCG-j-1SO9W3cn8cxRWPcw_yeroRMK0';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let currentSession = null;
+
+    // ── Auth check ──
+    sb.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) {
+        window.location.href = '/signup';
+        return;
+      }
+      currentSession = session;
+      loadStats();
+    });
+
+    // ── Charger les stats ──
+    async function loadStats() {
+      document.getElementById('loaderState').style.display = 'block';
+      document.getElementById('mainContent').style.display = 'none';
+
+      const res = await fetch('/api/admin/stats', {
+        headers: { 'Authorization': `Bearer ${currentSession.access_token}` }
+      });
+
+      if (res.status === 401) { window.location.href = '/signup'; return; }
+      if (res.status === 403) { window.location.href = '/'; return; }
+
+      const data = await res.json();
+      if (!res.ok) {
+        document.getElementById('loaderState').innerHTML =
+          `<p style="color:var(--red)">Erreur : ${data.error}</p>`;
+        return;
+      }
+
+      renderStats(data);
+    }
+
+    function renderStats(data) {
+      // Chiffres
+      document.getElementById('valTotalUsers').textContent   = fmt(data.totalUsers);
+      document.getElementById('valActiveToday').textContent  = fmt(data.activeToday);
+      document.getElementById('valOutfitsToday').textContent = fmt(data.outfitsToday);
+      document.getElementById('valOutfitsTotal').textContent = fmt(data.outfitsTotal);
+
+      // Date
+      document.getElementById('statsDate').textContent = new Date().toLocaleString('fr-FR', {
+        day: '2-digit', month: 'long', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+
+      // Rôles
+      const roles = data.roles;
+      const total = Object.values(roles).reduce((s, v) => s + v, 0) || 1;
+
+      ['free', 'standard', 'premium', 'admin'].forEach(role => {
+        const count = roles[role] || 0;
+        const pct   = Math.round((count / total) * 100);
+        document.getElementById('role' + cap(role)).textContent = count;
+        document.getElementById('bar'  + cap(role)).style.width = pct + '%';
+      });
+
+      // Table utilisateurs
+      const tbody = document.getElementById('usersTableBody');
+      if (!data.lastUsers?.length) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:2rem;">Aucun utilisateur</td></tr>';
+      } else {
+        tbody.innerHTML = data.lastUsers.map(u => {
+          const genre  = u.genre || '—';
+          const role   = u.role  || 'free';
+          const date   = new Date(u.created_at).toLocaleDateString('fr-FR', {
+            day: '2-digit', month: 'short', year: 'numeric'
+          });
+          const genreDot = genre !== '—'
+            ? `<span class="genre-dot ${genre.toLowerCase()}"></span>`
+            : '';
+          return `<tr>
+            <td>${escHtml(u.email || '—')}</td>
+            <td>${genreDot}${escHtml(genre)}</td>
+            <td><span class="role-tag ${role}">${cap(role)}</span></td>
+            <td>${date}</td>
+          </tr>`;
+        }).join('');
+      }
+
+      document.getElementById('loaderState').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'block';
+    }
+
+    function fmt(n) {
+      return Number(n).toLocaleString('fr-FR');
+    }
+    function cap(s) {
+      return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+    function escHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>

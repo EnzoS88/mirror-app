@@ -382,6 +382,80 @@ app.post('/api/create-checkout-session', async (req, res) => {
   }
 });
 
+// ── Admin API ──
+app.get('/api/admin/stats', async (req, res) => {
+  // 1. Vérifier que l'utilisateur est admin
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'Non autorisé' });
+
+  const { data: profile } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (profile?.role !== 'admin') {
+    return res.status(403).json({ error: 'Accès refusé — admin uniquement' });
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+
+  try {
+    // Total utilisateurs
+    const { count: totalUsers } = await supabase
+      .from('users')
+      .select('*', { count: 'exact', head: true });
+
+    // Utilisateurs actifs aujourd'hui (1 ligne par user par jour)
+    const { count: activeToday } = await supabase
+      .from('daily_usage')
+      .select('*', { count: 'exact', head: true })
+      .eq('date', today);
+
+    // Tenues générées aujourd'hui
+    const { data: usageToday } = await supabase
+      .from('daily_usage')
+      .select('count')
+      .eq('date', today);
+    const outfitsToday = (usageToday || []).reduce((s, r) => s + (r.count || 0), 0);
+
+    // Tenues générées au total
+    const { data: usageAll } = await supabase
+      .from('daily_usage')
+      .select('count');
+    const outfitsTotal = (usageAll || []).reduce((s, r) => s + (r.count || 0), 0);
+
+    // Répartition des rôles
+    const { data: roleRows } = await supabase
+      .from('users')
+      .select('role');
+    const roles = { free: 0, standard: 0, premium: 0, admin: 0 };
+    (roleRows || []).forEach(u => {
+      const r = u.role || 'free';
+      roles[r] = (roles[r] || 0) + 1;
+    });
+
+    // 10 derniers inscrits
+    const { data: lastUsers } = await supabase
+      .from('users')
+      .select('email, genre, role, created_at')
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    res.json({
+      totalUsers:  totalUsers  || 0,
+      activeToday: activeToday || 0,
+      outfitsToday,
+      outfitsTotal,
+      roles,
+      lastUsers: lastUsers || [],
+    });
+  } catch (err) {
+    console.error('Admin stats error:', err);
+    res.status(500).json({ error: 'Erreur lors de la récupération des stats.' });
+  }
+});
+
 // ── Pages ──
 app.get('/signup', (req, res) => {
   res.sendFile(path.join(__dirname, 'signup.html'));
@@ -389,6 +463,10 @@ app.get('/signup', (req, res) => {
 
 app.get('/reset-password', (req, res) => {
   res.sendFile(path.join(__dirname, 'reset-password.html'));
+});
+
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
 app.get('*', (req, res) => {
