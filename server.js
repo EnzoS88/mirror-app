@@ -382,6 +382,23 @@ app.post('/api/create-checkout-session', async (req, res) => {
   }
 });
 
+// ── Profil utilisateur (role) ──
+app.get('/api/me', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'Non autorisé' });
+
+  const { data: profile } = await supabase
+    .from('users')
+    .select('role, genre')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  res.json({
+    role:  profile?.role  || 'free',
+    genre: profile?.genre || null,
+  });
+});
+
 // ── Admin API ──
 app.get('/api/admin/stats', async (req, res) => {
   // 1. Vérifier que l'utilisateur est admin

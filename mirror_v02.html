@@ -898,15 +898,18 @@
 
       // Afficher le lien admin si role = 'admin'
       try {
-        const { data: profile } = await sb
-          .from('users')
-          .select('role')
-          .eq('id', session.user.id)
-          .maybeSingle();
-        if (profile?.role === 'admin') {
-          document.getElementById('adminLink').style.display = 'block';
+        const meRes = await fetch('/api/me', {
+          headers: { 'Authorization': `Bearer ${session.access_token}` }
+        });
+        if (meRes.ok) {
+          const me = await meRes.json();
+          if (me.role === 'admin') {
+            document.getElementById('adminLink').style.display = 'block';
+          }
         }
-      } catch (e) { /* silencieux */ }
+      } catch (e) {
+        console.error('Erreur lecture profil :', e);
+      }
 
       // Charger le dressing sauvegardé
       try {
