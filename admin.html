@@ -279,6 +279,31 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* ── Role select inline ── */
+    .role-select {
+      appearance: none;
+      -webkit-appearance: none;
+      background: var(--cream);
+      border: 1.5px solid var(--cream-border);
+      border-radius: 10px;
+      padding: 0.35rem 2rem 0.35rem 0.7rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.18s, background 0.18s;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238A7A68' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.6rem center;
+    }
+    .role-select:focus { border-color: var(--gold-light); }
+    .role-select:disabled { opacity: 0.5; cursor: not-allowed; }
+    .role-select.saving  { border-color: var(--gold); background-color: #FDF4E3; }
+    .role-select.success { border-color: #276749; background-color: #f0fdf4; }
+    .role-select.error   { border-color: var(--red); background-color: #fdf0f0; }
+
     /* ── Refresh btn ── */
     .refresh-btn {
       background: transparent;
@@ -382,8 +407,8 @@
             <tr>
               <th>Email</th>
               <th>Genre</th>
-              <th>Rôle</th>
               <th>Inscrit le</th>
+              <th>Rôle</th>
             </tr>
           </thead>
           <tbody id="usersTableBody">
@@ -477,17 +502,74 @@
           const genreDot = genre !== '—'
             ? `<span class="genre-dot ${genre.toLowerCase()}"></span>`
             : '';
+          const roleOptions = ['free','standard','premium','admin']
+            .map(r => `<option value="${r}" ${r === role ? 'selected' : ''}>${cap(r)}</option>`)
+            .join('');
           return `<tr>
             <td>${escHtml(u.email || '—')}</td>
             <td>${genreDot}${escHtml(genre)}</td>
-            <td><span class="role-tag ${role}">${cap(role)}</span></td>
             <td>${date}</td>
+            <td>
+              <select class="role-select" data-userid="${escHtml(u.id)}" onchange="updateRole(this)">
+                ${roleOptions}
+              </select>
+            </td>
           </tr>`;
         }).join('');
       }
 
       document.getElementById('loaderState').style.display = 'none';
       document.getElementById('mainContent').style.display = 'block';
+    }
+
+    // ── Modifier le rôle d'un utilisateur ──
+    async function updateRole(selectEl) {
+      const userId  = selectEl.dataset.userid;
+      const newRole = selectEl.value;
+      const prev    = [...selectEl.options].find(o => o.defaultSelected)?.value || 'free';
+
+      selectEl.disabled = true;
+      selectEl.classList.add('saving');
+
+      try {
+        const res = await fetch('/api/admin/update-role', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentSession.access_token}`
+          },
+          body: JSON.stringify({ userId, role: newRole }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          selectEl.value = prev;             // revert
+          selectEl.classList.replace('saving', 'error');
+          setTimeout(() => {
+            selectEl.classList.remove('error');
+            selectEl.disabled = false;
+          }, 2000);
+          console.error('update-role:', data.error);
+          return;
+        }
+
+        // Succès : marquer l'option comme nouvelle valeur par défaut
+        [...selectEl.options].forEach(o => { o.defaultSelected = (o.value === newRole); });
+        selectEl.classList.replace('saving', 'success');
+        setTimeout(() => {
+          selectEl.classList.remove('success');
+          selectEl.disabled = false;
+        }, 1500);
+
+        // Rafraîchir les compteurs de rôles sans recharger toute la page
+        loadStats();
+
+      } catch (e) {
+        selectEl.value = prev;
+        selectEl.classList.replace('saving', 'error');
+        setTimeout(() => { selectEl.classList.remove('error'); selectEl.disabled = false; }, 2000);
+      }
     }
 
     function fmt(n) {

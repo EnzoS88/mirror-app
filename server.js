@@ -326,6 +326,40 @@ Maximum 80 mots. Parle comme un ami, pas comme une publicité.`;
   }
 });
 
+// ── Admin : modifier le rôle d'un utilisateur ──
+app.post('/api/admin/update-role', async (req, res) => {
+  const caller = await getUserFromToken(req);
+  if (!caller) return res.status(401).json({ error: 'Non autorisé' });
+
+  const { data: callerProfile } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', caller.id)
+    .maybeSingle();
+
+  if (callerProfile?.role !== 'admin') {
+    return res.status(403).json({ error: 'Accès refusé — admin uniquement' });
+  }
+
+  const { userId, role } = req.body;
+  if (!userId || !['free', 'standard', 'premium', 'admin'].includes(role)) {
+    return res.status(400).json({ error: 'userId et role valides requis' });
+  }
+
+  const { error } = await supabase
+    .from('users')
+    .update({ role })
+    .eq('id', userId);
+
+  if (error) {
+    console.error('update-role error:', error);
+    return res.status(500).json({ error: error.message });
+  }
+
+  console.log(`Admin ${caller.email} → user ${userId} role = '${role}'`);
+  res.json({ success: true });
+});
+
 // ── Stripe Checkout ──
 app.post('/api/create-checkout-session', async (req, res) => {
   const user = await getUserFromToken(req);
@@ -455,7 +489,7 @@ app.get('/api/admin/stats', async (req, res) => {
     // 10 derniers inscrits
     const { data: lastUsers } = await supabase
       .from('users')
-      .select('email, genre, role, created_at')
+      .select('id, email, genre, role, created_at')
       .order('created_at', { ascending: false })
       .limit(10);
 
