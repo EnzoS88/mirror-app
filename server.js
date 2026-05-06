@@ -5,12 +5,19 @@ const Anthropic = require('@anthropic-ai/sdk');
 const { createClient } = require('@supabase/supabase-js');
 const Stripe = require('stripe');
 
-const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+// Initialisation défensive : ne crash pas si la clé n'est pas encore configurée
+const stripe = process.env.STRIPE_SECRET_KEY
+  ? Stripe(process.env.STRIPE_SECRET_KEY)
+  : null;
+
+if (!stripe) console.warn('⚠️  STRIPE_SECRET_KEY manquante — les paiements sont désactivés.');
 
 const app = express();
 
 // ── Webhook Stripe : raw body AVANT express.json() ──
 app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  if (!stripe) return res.status(503).json({ error: 'Stripe non configuré' });
+
   const sig = req.headers['stripe-signature'];
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -362,6 +369,8 @@ app.post('/api/admin/update-role', async (req, res) => {
 
 // ── Stripe Checkout ──
 app.post('/api/create-checkout-session', async (req, res) => {
+  if (!stripe) return res.status(503).json({ error: 'Paiement non configuré. Contacte le support.' });
+
   const user = await getUserFromToken(req);
   if (!user) return res.status(401).json({ error: 'Non autorisé' });
 
