@@ -36,6 +36,23 @@
     }
     .user-avatar:hover { background: var(--gold-light); transform: scale(1.05); }
 
+    /* Badge plan (couronne) sur l'avatar */
+    .avatar-plan-badge {
+      display: none;
+      position: absolute;
+      bottom: -4px; right: -4px;
+      width: 16px; height: 16px;
+      background: var(--text);
+      border: 1.5px solid #fff;
+      border-radius: 50%;
+      font-size: 9px;
+      line-height: 13px;
+      text-align: center;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .avatar-plan-badge.visible { display: block; }
+
     /* Dropdown */
     .user-dropdown {
       position: absolute;
@@ -76,6 +93,21 @@
       height: 1px; background: var(--cream-border);
       margin: 0.3rem 0.5rem;
     }
+
+    /* Ligne plan actuel dans le dropdown */
+    .dropdown-plan {
+      display: none;
+      padding: 0.45rem 0.9rem 0.5rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--gold);
+      border-radius: 10px;
+      cursor: default;
+      user-select: none;
+    }
+    .dropdown-plan.visible { display: block; }
 
     /* ── PANELS ── */
     .panel-overlay {
@@ -686,7 +718,9 @@
   <div class="user-bar" id="userBar" style="display:none;">
     <div class="user-avatar" id="userAvatar" onclick="toggleDropdown()">
       <span id="userInitial">?</span>
+      <span class="avatar-plan-badge" id="avatarPlanBadge"></span>
       <div class="user-dropdown" id="userDropdown">
+        <div class="dropdown-plan" id="dropdownPlan"></div>
         <button class="dropdown-item" onclick="openPanel('dressing')">👗 Mon dressing</button>
         <button class="dropdown-item" onclick="openPanel('tenues')">✨ Mes tenues</button>
         <a class="dropdown-item" id="adminLink" href="/admin" style="display:none; text-decoration:none;">⚙️ Dashboard Admin</a>
@@ -896,15 +930,29 @@
       document.getElementById('userInitial').textContent =
         (session.user.email?.[0] || '?').toUpperCase();
 
-      // Afficher le lien admin si role = 'admin'
+      // Lire le rôle : badge plan + lien admin
       try {
         const meRes = await fetch('/api/me', {
           headers: { 'Authorization': `Bearer ${session.access_token}` }
         });
         if (meRes.ok) {
           const me = await meRes.json();
+
+          // Lien admin
           if (me.role === 'admin') {
             document.getElementById('adminLink').style.display = 'block';
+          }
+
+          // Badge couronne sur l'avatar + ligne plan dans le dropdown
+          if (me.role === 'standard' || me.role === 'premium') {
+            const badge = document.getElementById('avatarPlanBadge');
+            badge.textContent = '♛';
+            badge.classList.add('visible');
+
+            const planEl = document.getElementById('dropdownPlan');
+            const label  = me.role === 'premium' ? '✦ Plan Premium' : '✦ Plan Standard';
+            planEl.textContent = label;
+            planEl.classList.add('visible');
           }
         }
       } catch (e) {
