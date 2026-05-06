@@ -33,27 +33,17 @@
       display: flex; align-items: center; justify-content: center;
       cursor: pointer;
       user-select: none;
-      transition: background 0.18s, transform 0.15s;
+      border: 2px solid transparent;
+      transition: background 0.18s, transform 0.15s, border-color 0.3s, box-shadow 0.3s;
       position: relative;
     }
     .user-avatar:hover { background: var(--gold-light); transform: scale(1.05); }
 
-    /* Badge plan (couronne) sur l'avatar */
-    .avatar-plan-badge {
-      display: none;
-      position: absolute;
-      bottom: -4px; right: -4px;
-      width: 16px; height: 16px;
-      background: var(--text);
-      border: 1.5px solid #fff;
-      border-radius: 50%;
-      font-size: 9px;
-      line-height: 13px;
-      text-align: center;
-      pointer-events: none;
-      z-index: 2;
+    /* Liseré doré pour les plans payants */
+    .user-avatar.plan-paid {
+      border-color: var(--gold-light);
+      box-shadow: 0 0 0 2px var(--gold), 0 0 8px rgba(184,150,78,0.35);
     }
-    .avatar-plan-badge.visible { display: block; }
 
     /* Dropdown */
     .user-dropdown {
@@ -720,7 +710,6 @@
   <div class="user-bar" id="userBar" style="display:none;">
     <div class="user-avatar" id="userAvatar" onclick="toggleDropdown()">
       <span id="userInitial">?</span>
-      <span class="avatar-plan-badge" id="avatarPlanBadge"></span>
       <div class="user-dropdown" id="userDropdown">
         <div class="dropdown-plan" id="dropdownPlan"></div>
         <button class="dropdown-item" onclick="openPanel('dressing')">👗 Mon dressing</button>
@@ -947,9 +936,7 @@
 
           // Badge couronne sur l'avatar + ligne plan dans le dropdown
           if (me.role === 'standard' || me.role === 'premium') {
-            const badge = document.getElementById('avatarPlanBadge');
-            badge.textContent = '♛';
-            badge.classList.add('visible');
+            document.getElementById('userAvatar').classList.add('plan-paid');
 
             const planEl = document.getElementById('dropdownPlan');
             const label  = me.role === 'premium' ? '✦ Plan Premium' : '✦ Plan Standard';
