@@ -552,4 +552,24 @@ app.get('*', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Mirror running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Mirror running on port ${PORT}`);
+
+  // ── Keep-alive Supabase (évite la mise en pause après inactivité) ──
+  if (supabase) {
+    const INTERVAL_MS = 48 * 60 * 60 * 1000; // 48 heures
+
+    const pingSupabase = async () => {
+      try {
+        const { error } = await supabase.from('users').select('id').limit(1);
+        if (error) console.warn('Keep-alive Supabase warning:', error.message);
+        else console.log('Keep-alive Supabase OK —', new Date().toISOString());
+      } catch (e) {
+        console.warn('Keep-alive Supabase error:', e.message);
+      }
+    };
+
+    setInterval(pingSupabase, INTERVAL_MS);
+    console.log('Keep-alive Supabase actif (ping toutes les 48h)');
+  }
+});
