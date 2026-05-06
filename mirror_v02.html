@@ -14,9 +14,11 @@
       top: 0; left: 0; right: 0;
       background: transparent;
       padding: 0.75rem 1.25rem;
+      /* Safe area iPhone (notch / Dynamic Island) */
+      padding-top: max(0.75rem, env(safe-area-inset-top));
       display: flex;
       align-items: center;
-      z-index: 100;
+      z-index: 200;
     }
 
     /* Avatar cercle doré */

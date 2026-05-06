@@ -69,15 +69,18 @@ app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
-// ── Clients ──
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SECRET_KEY
-);
+// ── Clients (défensifs — ne crashent pas si une clé manque) ──
+const anthropic = process.env.ANTHROPIC_API_KEY
+  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  : (() => { console.warn('⚠️  ANTHROPIC_API_KEY manquante'); return null; })();
+
+const supabase = (process.env.SUPABASE_URL && process.env.SUPABASE_SECRET_KEY)
+  ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SECRET_KEY)
+  : (() => { console.warn('⚠️  SUPABASE_URL / SUPABASE_SECRET_KEY manquantes'); return null; })();
 
 // ── Auth helper ──
 async function getUserFromToken(req) {
+  if (!supabase) return null;
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return null;
   const { data: { user }, error } = await supabase.auth.getUser(token);
@@ -302,6 +305,10 @@ LIGNE 3+ : Exactement 3 phrases naturelles qui décrivent les pièces concrètes
 
 Maximum 80 mots. Parle comme un ami, pas comme une publicité.`;
 
+  if (!anthropic) {
+    return res.status(503).json({ error: 'Service IA non configuré. Contacte le support.' });
+  }
+
   try {
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
@@ -514,6 +521,17 @@ app.get('/api/admin/stats', async (req, res) => {
     console.error('Admin stats error:', err);
     res.status(500).json({ error: 'Erreur lors de la récupération des stats.' });
   }
+});
+
+// ── Health check ──
+app.get('/api/health', (req, res) => {
+  res.json({
+    ok: true,
+    stripe:    !!stripe,
+    anthropic: !!anthropic,
+    supabase:  !!supabase,
+    uptime:    Math.floor(process.uptime()),
+  });
 });
 
 // ── Pages ──
