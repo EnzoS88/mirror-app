@@ -45,6 +45,18 @@
       box-shadow: 0 0 0 2px var(--gold), 0 0 8px rgba(184,150,78,0.35);
     }
 
+    /* Couronne SVG au-dessus du cercle */
+    .avatar-crown {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 3px);
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+      filter: drop-shadow(0 1px 2px rgba(184,150,78,0.5));
+    }
+    .user-avatar.plan-paid .avatar-crown { display: block; }
+
     /* Dropdown */
     .user-dropdown {
       position: absolute;
@@ -710,6 +722,10 @@
   <div class="user-bar" id="userBar" style="display:none;">
     <div class="user-avatar" id="userAvatar" onclick="toggleDropdown()">
       <span id="userInitial">?</span>
+      <svg class="avatar-crown" width="16" height="10" viewBox="0 0 16 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M1 9.5 L1 4.5 L4 7 L8 0.5 L12 7 L15 4.5 L15 9.5 Z"
+              fill="rgba(212,170,106,0.22)" stroke="#D4AA6A" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"/>
+      </svg>
       <div class="user-dropdown" id="userDropdown">
         <div class="dropdown-plan" id="dropdownPlan"></div>
         <button class="dropdown-item" onclick="openPanel('dressing')">👗 Mon dressing</button>
@@ -909,6 +925,7 @@
     const SUPABASE_KEY = 'sb_publishable_HCG-j-1SO9W3cn8cxRWPcw_yeroRMK0';
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     let currentSession = null;
+    let currentUserRole = 'free'; // mis à jour après /api/me
 
     // Vérif auth au chargement + chargement du dressing
     sb.auth.getSession().then(async ({ data: { session } }) => {
@@ -928,6 +945,8 @@
         });
         if (meRes.ok) {
           const me = await meRes.json();
+
+          currentUserRole = me.role || 'free';
 
           // Lien admin
           if (me.role === 'admin') {
@@ -1002,12 +1021,30 @@
     }
 
     // ── Sauvegarder depuis le panneau dressing ──
+    function countDressingPieces(text) {
+      if (!text.trim()) return 0;
+      return text.split(',').filter(p => p.trim().length > 0).length;
+    }
+
     async function saveDressingFromPanel() {
       const val = document.getElementById('panelDressingText').value.trim();
       const btn = document.getElementById('panelDressingBtn');
       const msg = document.getElementById('panelDressingMsg');
 
       if (!currentSession?.access_token) return;
+
+      // Limite dressing pour les comptes gratuits
+      const FREE_LIMIT = 20;
+      const isUnlimited = ['standard', 'premium', 'admin'].includes(currentUserRole);
+      if (!isUnlimited && countDressingPieces(val) > FREE_LIMIT) {
+        msg.style.color = 'var(--gold)';
+        msg.innerHTML = `Limite de ${FREE_LIMIT} pièces atteinte.<br>
+          <span style="font-size:0.78rem; color:var(--text-muted);">
+            Passe à Mirror Standard ou Premium pour un dressing illimité.
+          </span>`;
+        return;
+      }
+
       btn.disabled = true;
       btn.textContent = 'Sauvegarde…';
 

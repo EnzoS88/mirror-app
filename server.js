@@ -148,6 +148,23 @@ app.post('/api/save-dressing', async (req, res) => {
   const { vetements } = req.body;
   if (vetements === undefined) return res.status(400).json({ error: 'Champ vetements requis' });
 
+  // Limite dressing pour les comptes gratuits
+  const FREE_DRESSING_LIMIT = 20;
+  const { data: profile } = await supabase
+    .from('users').select('role').eq('id', user.id).maybeSingle();
+  const role = profile?.role || 'free';
+  const isUnlimited = ['standard', 'premium', 'admin'].includes(role);
+
+  if (!isUnlimited && vetements.trim()) {
+    const pieces = vetements.split(',').filter(p => p.trim().length > 0).length;
+    if (pieces > FREE_DRESSING_LIMIT) {
+      return res.status(403).json({
+        code: 'DRESSING_LIMIT',
+        error: `Limite de ${FREE_DRESSING_LIMIT} pièces atteinte pour les comptes gratuits.`
+      });
+    }
+  }
+
   // Chercher si une ligne existe déjà pour cet utilisateur
   const { data: existing, error: selectError } = await supabase
     .from('dressing')
