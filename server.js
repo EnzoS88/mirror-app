@@ -4,6 +4,7 @@ const path = require('path');
 const Anthropic = require('@anthropic-ai/sdk');
 const { createClient } = require('@supabase/supabase-js');
 const Stripe = require('stripe');
+const rateLimit = require('express-rate-limit');
 
 // Initialisation défensive : ne crash pas si la clé n'est pas encore configurée
 const stripe = process.env.STRIPE_SECRET_KEY
@@ -235,16 +236,27 @@ app.get('/api/tenues', async (req, res) => {
   res.json({ tenues: data });
 });
 
+// ── Rate limiter : 10 req/min/IP sur generate-outfit ──
+const generateLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Trop de requêtes. Réessaie dans une minute.' },
+});
+
 // ── Génération de tenue ──
-app.post('/api/generate-outfit', async (req, res) => {
+app.post('/api/generate-outfit', generateLimiter, async (req, res) => {
   const { style, colors, occasion, saison, dressing, forbiddenType } = req.body;
 
   if (!style || !occasion || !saison) {
     return res.status(400).json({ error: 'Champs manquants : style, occasion et saison sont requis.' });
   }
 
-  // ── Vérification limite journalière ──
+  // ── Auth obligatoire ──
   const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'Connexion requise pour générer une tenue.' });
+
   const DAILY_LIMIT = 3;
 
   if (user) {

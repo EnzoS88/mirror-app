@@ -927,6 +927,16 @@
     let currentSession = null;
     let currentUserRole = 'free'; // mis à jour après /api/me
 
+    // ── Échappement XSS ──
+    function escHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
     // Vérif auth au chargement + chargement du dressing
     sb.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) {
@@ -1098,14 +1108,14 @@
           });
           const tags = [t.style, t.occasion, t.saison]
             .filter(Boolean)
-            .map(tag => `<span class="tenue-tag">${tag}</span>`)
+            .map(tag => `<span class="tenue-tag">${escHtml(tag)}</span>`)
             .join('');
           return `
             <div class="tenue-card">
-              <div class="tenue-titre">${t.titre}</div>
+              <div class="tenue-titre">${escHtml(t.titre)}</div>
               ${tags ? `<div class="tenue-meta">${tags}</div>` : ''}
-              <div class="tenue-body">${t.contenu}</div>
-              <div class="tenue-date">${date}</div>
+              <div class="tenue-body">${escHtml(t.contenu)}</div>
+              <div class="tenue-date">${escHtml(date)}</div>
             </div>`;
         }).join('');
 
